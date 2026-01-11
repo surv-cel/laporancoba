@@ -66,7 +66,7 @@ h1{
 .feeder{background:#38bdf8;color:#000}
 .gpon{background:#c084fc;color:#000}
 
-/* ===== THEME AREA ===== */
+/* ===== THEME + TRADEMARK ===== */
 .theme-area{
   display:flex;
   align-items:center;
@@ -88,7 +88,6 @@ h1{
   transform:translateY(-2px);
 }
 
-/* ===== TRADEMARK ===== */
 .trademark{
   font-weight:900;
   letter-spacing:1px;
@@ -132,7 +131,7 @@ h1{
   background:var(--panel);
   border:1px solid var(--border);
   border-radius:16px;
-  padding:16px;
+  padding:18px;
   margin-bottom:14px;
   transition:.25s ease;
 }
@@ -152,39 +151,70 @@ h1{
 }
 
 /* ================= ESKALASI ================= */
-#eskalasi textarea{
-  height:360px;
-  font-family:monospace;
-  border-radius:14px;
-  border:none;
-  padding:14px;
-  background:rgba(0,0,0,.25);
-  color:inherit;
-}
-
 #eskalasi .grid2{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:24px;
+  gap:28px;
+  align-items:stretch;
 }
 
-#eskalasi button{
-  margin-top:14px;
-  padding:12px 26px;
-  border-radius:999px;
+/* responsive */
+@media (max-width:900px){
+  #eskalasi .grid2{
+    grid-template-columns:1fr;
+  }
+}
+
+#eskalasi .card{
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+#eskalasi textarea{
+  width:100%;
+  min-height:420px;
+  resize:vertical;
+  font-family:monospace;
+  font-size:14px;
+  border-radius:16px;
   border:none;
-  font-weight:800;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#000;
-  cursor:pointer;
-  box-shadow:0 12px 24px rgba(0,0,0,.35);
-  transition:.25s;
-}
-
-#eskalasi button:hover{
-  transform:translateY(-2px);
+  padding:18px;
+  background:rgba(0,0,0,.25);
+  color:inherit;
+  box-sizing:border-box;
 }
 
 #eskalasi h3{
   margin-top:0;
+  margin-bottom:10px;
 }
+
+/* ===== BUTTONS ===== */
+#eskalasi button{
+  margin-top:16px;
+  padding:14px 32px;
+  border-radius:999px;
+  border:none;
+  font-weight:900;
+  letter-spacing:.6px;
+  background:linear-gradient(135deg,#22d3ee,#a78bfa,#f472b6);
+  color:#000;
+  cursor:pointer;
+  box-shadow:
+    0 10px 25px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(255,255,255,.45);
+  transition:.25s ease;
+}
+
+#eskalasi button:hover{
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:
+    0 18px 40px rgba(0,0,0,.45),
+    0 0 18px rgba(167,139,250,.6);
+}
+
+#eskalasi button:active{
+  transform:translateY(0);
+}
+   
