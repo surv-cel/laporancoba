@@ -80,3 +80,31 @@ h1{margin-bottom:16px}
 }
 .card b{color:#facc15}
 .empty{opacity:.6;font-style:italic}
+
+/* ================= ESKALASI ================= */
+#eskalasi textarea{
+  height:360px;
+  font-family:monospace;
+}
+
+#eskalasi .grid2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+#eskalasi button{
+  margin-top:12px;
+  padding:12px 22px;
+  border-radius:999px;
+  border:none;
+  font-weight:700;
+  background:var(--accent);
+  color:#fff;
+  cursor:pointer;
+}
+
+#eskalasi h3{
+  margin-top:0;
+}
+
