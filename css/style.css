@@ -7,6 +7,33 @@
   --accent2:#a78bfa;
 }
 
+/* ===== MODERN TITLE ===== */
+.page-title{
+  text-align:center;
+  margin:40px 0 28px;
+}
+
+.page-title h1{
+  font-size:32px;
+  font-weight:900;
+  letter-spacing:.5px;
+  margin:0;
+  background:linear-gradient(90deg,#22d3ee,#a78bfa,#f472b6);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.page-title h2{
+  font-size:32px;
+  font-weight:900;
+  letter-spacing:.5px;
+  margin:0;
+  background:linear-gradient(90deg,#22d3ee,#a78bfa,#f472b6);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+
 body.light{
   --bg: linear-gradient(135deg,#f8fafc,#eef2ff);
   --panel:#ffffff;
@@ -217,4 +244,3 @@ h1{
 #eskalasi button:active{
   transform:translateY(0);
 }
-   
