@@ -154,10 +154,8 @@ TSEL : 0811-3081-500
   document.getElementById('eskOutput').value = result;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const btnConvert = document.getElementById('btnConvert');
-  const btnCopy = document.getElementById('btnCopy');
-
-  if (btnConvert) btnConvert.addEventListener('click', convertEskalasi);
-  if (btnCopy) btnCopy.addEventListener('click', copyEskalasi);
+// bind tombol (AMAN walau file CSV belum diupload)
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('btnConvert')?.addEventListener('click',convertEskalasi);
+  document.getElementById('btnCopy')?.addEventListener('click',copyEskalasi);
 });
