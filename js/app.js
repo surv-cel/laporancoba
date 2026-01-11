@@ -97,3 +97,52 @@ document.getElementById("themeToggle").onclick = () => {
 
 // ===== INIT =====
 loadWorkzones();
+
+// ================= ESKALASI =================
+function cleanText(t){
+  return t.replace(/\*/g,' ').replace(/\s+/g,' ').trim();
+}
+
+function pickBetween(text,start,end){
+  const s=text.indexOf(start);
+  if(s===-1) return '-';
+  const from=s+start.length;
+  if(!end) return text.substring(from).trim();
+  const e=text.indexOf(end,from);
+  return (e===-1?text.substring(from):text.substring(from,e)).trim();
+}
+
+function formatAction(text){
+  return text.replace(/(\d{2}:\d{2}\sWIB\s:)/g,'\n$1').trim();
+}
+
+function convertEskalasi(){
+  const raw=cleanText(document.getElementById('eskInput').value);
+
+  const result=`
+Kepada : ${pickBetween(raw,'Kepada :','Current status')}
+Current status : ${pickBetween(raw,'Current status :','Nomor Tiket')}
+Nomor Tiket : ${pickBetween(raw,'Nomor Tiket :','NE')}
+
+Action :
+${formatAction(pickBetween(raw,'Action :','PIC'))}
+
+REPORT INTERNAL TELKOM
+DILARANG DISEBARLUASKAN
+`.trim();
+
+  document.getElementById('eskOutput').value=result;
+}
+
+function copyEskalasi(){
+  const o=document.getElementById('eskOutput');
+  o.select();
+  document.execCommand('copy');
+  alert('Data eskalasi berhasil di-copy');
+}
+
+// bind tombol (AMAN walau file CSV belum diupload)
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('btnConvert')?.addEventListener('click',convertEskalasi);
+  document.getElementById('btnCopy')?.addEventListener('click',copyEskalasi);
+});
