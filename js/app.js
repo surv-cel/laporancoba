@@ -153,3 +153,11 @@ TSEL : 0811-3081-500
 
   document.getElementById('eskOutput').value = result;
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btnConvert = document.getElementById('btnConvert');
+  const btnCopy = document.getElementById('btnCopy');
+
+  if (btnConvert) btnConvert.addEventListener('click', convertEskalasi);
+  if (btnCopy) btnCopy.addEventListener('click', copyEskalasi);
+});
