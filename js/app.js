@@ -99,50 +99,98 @@ document.getElementById("themeToggle").onclick = () => {
 loadWorkzones();
 
 // ================= ESKALASI =================
-function cleanText(t){
-  return t.replace(/\*/g,' ').replace(/\s+/g,' ').trim();
+function cleanText(text) {
+  return text
+    .replace(/\*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-function pickBetween(text,start,end){
-  const s=text.indexOf(start);
-  if(s===-1) return '-';
-  const from=s+start.length;
-  if(!end) return text.substring(from).trim();
-  const e=text.indexOf(end,from);
-  return (e===-1?text.substring(from):text.substring(from,e)).trim();
+function pickBetween(text, startKey, endKey) {
+  const start = text.indexOf(startKey);
+  if (start === -1) return "-";
+
+  const from = start + startKey.length;
+  if (!endKey) return text.substring(from).trim();
+
+  const end = text.indexOf(endKey, from);
+  return (end === -1 ? text.substring(from) : text.substring(from, end)).trim();
 }
 
-function formatAction(text){
-  return text.replace(/(\d{2}:\d{2}\sWIB\s:)/g,'\n$1').trim();
+function formatAction(text) {
+  return text
+    .replace(/\s*(\d{2}:\d{2}\sWIB\s:)/g, "\n$1")
+    .trim();
 }
 
-function convertEskalasi(){
-  const raw=cleanText(document.getElementById('eskInput').value);
+function convertEskalasi() {
+  const raw = cleanText(document.getElementById("eskInput").value);
 
-  const result=`
-Kepada : ${pickBetween(raw,'Kepada :','Current status')}
-Current status : ${pickBetween(raw,'Current status :','Nomor Tiket')}
-Nomor Tiket : ${pickBetween(raw,'Nomor Tiket :','NE')}
+  const result = `
+Kepada : ${pickBetween(raw, "Kepada :", "Current status")}
+Current status : ${pickBetween(raw, "Current status :", "Nomor Tiket")}
+Nomor Tiket : ${pickBetween(raw, "Nomor Tiket :", "NE")}
+
+
+NE: ${pickBetween(raw, "NE:", "LOKASI")}
+LOKASI : ${pickBetween(raw, "LOKASI :", "Urgency")}
+Urgency : ${pickBetween(raw, "Urgency :", "Start Time")}
+
+
+Start Time : ${pickBetween(raw, "Start Time :", "End Time")}
+End Time : ${pickBetween(raw, "End Time :", "Duration Time")}
+Duration Time : ${pickBetween(raw, "Duration Time :", "Headline")}
+
+
+Headline : ${pickBetween(raw, "Headline :", "Impacted Service")}
+
+
+Impacted Service :
+${pickBetween(raw, "Impacted Service :", "Pelanggan Terganggu")}
+
+
+Pelanggan Terganggu :
+${pickBetween(raw, "Pelanggan Terganggu :", "Perangkat Terganggu")}
+
+
+Perangkat Terganggu :
+${pickBetween(raw, "Perangkat Terganggu :", "Penyebab gangguan")}
+
+
+Penyebab gangguan:
+${pickBetween(raw, "Penyebab gangguan:", "Action")}
+
 
 Action :
-${formatAction(pickBetween(raw,'Action :','PIC'))}
+${formatAction(pickBetween(raw, "Action :", "PIC"))}
+
+
+PIC :
+${pickBetween(raw, "PIC :", "CC")}
+
+
+CC :
+${pickBetween(raw, "CC :", "Eskalasi")}
+
+
+Eskalasi :
+${pickBetween(raw, "Eskalasi :", "Surveillance")}
+
+
+Surveillance ROC5 - ${pickBetween(raw, "Surveillance", "REPORT INTERNAL TELKOM")}
+
 
 REPORT INTERNAL TELKOM
-DILARANG DISEBARLUASKAN
+DILARANG DISEBARLUASKAN KE LUAR TELKOM
+
+Contact Center:
+Free Call : 0800-1-353000
+TSEL : 0811-3081-500
 `.trim();
 
-  document.getElementById('eskOutput').value=result;
+  document.getElementById("eskOutput").value = result;
 }
 
-function copyEskalasi(){
-  const o=document.getElementById('eskOutput');
-  o.select();
-  document.execCommand('copy');
-  alert('Data eskalasi berhasil di-copy');
-}
-
-// bind tombol (AMAN walau file CSV belum diupload)
-document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('btnConvert')?.addEventListener('click',convertEskalasi);
   document.getElementById('btnCopy')?.addEventListener('click',copyEskalasi);
 });
