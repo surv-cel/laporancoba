@@ -64,7 +64,6 @@ h1{
 .odc{background:#34d399;color:#000}
 .odp{background:#fb7185;color:#000}
 
-
 /* ===== HEADER ===== */
 .header{
   display:flex;
@@ -276,4 +275,3 @@ h1{
   cursor:pointer;
   background:linear-gradient(135deg,var(--accent),var(--accent2));
 }
-   
