@@ -100,7 +100,7 @@ function renderData(data) {
 	   const summary = row["SUMMARY"] || "";
 	   const update  = row["WORKLOG SUMMARY"] || "-";
 	   const zone    = (row["WORKZONE"] || "").toUpperCase();
-      total++; 
+       total++; 
 
 	  if (summary.includes("(REPAIR) TRA T3") || summary.includes("(RECOVERY) TRA T3")) {
 		bb++;
