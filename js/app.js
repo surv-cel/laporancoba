@@ -23,19 +23,49 @@ async function loadWorkzones() {
 
 // ================= CSV PARSER =================
 function parseCSV(text) {
+  // hapus BOM UTF-8 jika ada
   text = text.replace(/^\uFEFF/, '');
+
   const lines = text.split(/\r?\n/).filter(l => l.trim());
   if (!lines.length) return [];
 
   let delimiter = ',';
   if (lines[0].includes(';')) delimiter = ';';
+  else if (lines[0].includes('\t')) delimiter = '\t';
 
-  const headers = lines.shift().split(delimiter).map(h => h.trim());
+  const parseLine = (line) => {
+    const result = [];
+    let cur = '';
+    let inQuotes = false;
 
-  return lines.map(l => {
-    const cols = l.split(delimiter);
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      const next = line[i + 1];
+
+      if (c === '"' && next === '"' && inQuotes) {
+        cur += '"';
+        i++;
+      } else if (c === '"') {
+        inQuotes = !inQuotes;
+      } else if (c === delimiter && !inQuotes) {
+        result.push(cur);
+        cur = '';
+      } else {
+        cur += c;
+      }
+    }
+    result.push(cur);
+    return result.map(v => v.trim());
+  };
+
+  const headers = parseLine(lines.shift());
+
+  return lines.map(line => {
+    const cols = parseLine(line);
     const o = {};
-    headers.forEach((h, i) => o[h] = cols[i]?.trim() || '');
+    headers.forEach((h, i) => {
+      o[h] = cols[i] ?? '';
+    });
     return o;
   });
 }
@@ -60,33 +90,55 @@ function renderData(data) {
   jatimBox.innerHTML = "";
   balnusBox.innerHTML = "";
 
+  let total = 0;
+  let bb = 0, ip = 0;
   let d = 0, f = 0, g = 0;
+  let odc = 0, odp = 0;
   let noJ = 1, noB = 1;
 
   data.forEach(row => {
-    const summary = row["SUMMARY"] || "";
-    const update = row["WORKLOG SUMMARY"] || "-";
-    const zone = (row["WORKZONE"] || "").toUpperCase();
+	  const summary = (row["SUMMARY"] || "").toUpperCase();
+	  total++;
 
-    if (summary.includes("DISTRIBUSI")) d++;
-    if (summary.includes("FEEDER")) f++;
-    if (summary.includes("GPON")) g++;
+	  if (summary.includes("(REPAIR) TRA T3") || summary.includes("(RECOVERY) TRA T3")) {
+		bb++;
+	  }
 
-    const card = document.createElement("div");
-    card.className = "card";
+	  if (summary.includes("(REPAIR) IP T3") || summary.includes("(RECOVERY) IP T3")) {
+		ip++;
+	  }
 
-    if (DB_JATIM.has(zone)) {
-      card.innerHTML = `<b>${noJ++}. ${row["INCIDENT"] || '-'}</b><br>${summary}<br><br><b>Update :</b> ${update}`;
-      jatimBox.appendChild(card);
-    } else if (DB_BALNUS.has(zone)) {
-      card.innerHTML = `<b>${noB++}. ${row["INCIDENT"] || '-'}</b><br>${summary}<br><br><b>Update :</b> ${update}`;
-      balnusBox.appendChild(card);
-    }
-  });
+	  if (summary.includes("DISTRIBUSI")) d++;
+	  if (summary.includes("FEEDER")) f++;
+	  if (summary.includes("GPON")) g++;
+	  if (summary.includes("ODC")) odc++;
+	  if (summary.includes("ODP")) odp++;
 
-  document.getElementById("distriCount").textContent = `DISTRIBUSI : ${d}`;
-  document.getElementById("feederCount").textContent = `FEEDER : ${f}`;
-  document.getElementById("gponCount").textContent = `GPON : ${g}`;
+    const zone = (row["WORKZONE"] || row["WORK ZONE"] || "").toUpperCase();
+		const update = row["UPDATE"] || row["ACTION"] || "-";
+
+		const card = document.createElement("div");
+		card.className = "card";
+
+		if (DB_JATIM.has(zone)) {
+		  card.innerHTML = `<b>${noJ++}. ${row["INCIDENT"] || '-'}</b><br>${summary}<br><br><b>Update :</b> ${update}`;
+		  jatimBox.appendChild(card);
+		} 
+		else if (DB_BALNUS.has(zone)) {
+		  card.innerHTML = `<b>${noB++}. ${row["INCIDENT"] || '-'}</b><br>${summary}<br><br><b>Update :</b> ${update}`;
+		  balnusBox.appendChild(card);
+	}
+});
+
+	document.getElementById("totalCount").textContent = `TOTAL : ${total}`;
+	document.getElementById("bbCount").textContent = `BB : ${bb}`;
+	document.getElementById("ipCount").textContent = `IP : ${ip}`;
+	document.getElementById("gponCount").textContent = `GPON : ${g}`;
+	document.getElementById("feederCount").textContent = `FEEDER : ${f}`;
+	document.getElementById("distriCount").textContent = `DISTRIBUSI : ${d}`;
+	document.getElementById("odcCount").textContent = `ODC : ${odc}`;
+	document.getElementById("odpCount").textContent = `ODP : ${odp}`;
+
 
   if (!jatimBox.children.length) jatimBox.innerHTML = `<div class="empty">Data tidak ditemukan</div>`;
   if (!balnusBox.children.length) balnusBox.innerHTML = `<div class="empty">Data tidak ditemukan</div>`;
@@ -227,4 +279,4 @@ document.addEventListener('DOMContentLoaded', () => {
   loadWorkzones();
   document.getElementById('btnConvert')?.addEventListener('click', convertEskalasi);
   document.getElementById('btnCopy')?.addEventListener('click', copyEskalasi);
-});   
+});      
