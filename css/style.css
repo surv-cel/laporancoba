@@ -58,6 +58,13 @@ h1{
   letter-spacing:.3px;
 }
 
+.total{background:#22c55e;color:#000}
+.bb{background:#facc15;color:#000}
+.ip{background:#60a5fa;color:#000}
+.odc{background:#34d399;color:#000}
+.odp{background:#fb7185;color:#000}
+
+
 /* ===== HEADER ===== */
 .header{
   display:flex;
@@ -251,8 +258,8 @@ h1{
   gap:10px;
   align-items:center;
 }
-
-.search-area input{
+   
+.search-area input{  
   padding:10px 14px;
   border-radius:999px;
   border:1px solid var(--border);
@@ -268,4 +275,5 @@ h1{
   font-weight:800;
   cursor:pointer;
   background:linear-gradient(135deg,var(--accent),var(--accent2));
-} 
+}
+   
