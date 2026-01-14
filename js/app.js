@@ -2,6 +2,9 @@
 let DB_JATIM = new Set();
 let DB_BALNUS = new Set();
 
+// SIMPAN DATA CSV ASLI
+let ALL_DATA = [];
+
 async function loadWorkzones() {
   const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1zzLfkuctrLA3dvesis1ZJi1-eC8eIQy_h0OV8K5nI6f2dPcOc2g9NC5NUAgQer7i-iM6mqTE_KQv/pub?output=csv';
   try {
@@ -13,7 +16,6 @@ async function loadWorkzones() {
       if (jatim) DB_JATIM.add(jatim.trim().toUpperCase());
       if (balnus) DB_BALNUS.add(balnus.trim().toUpperCase());
     });
-    console.log('Workzones loaded:', DB_JATIM.size, DB_BALNUS.size);
   } catch (err) {
     console.error('Gagal load workzones:', err);
   }
@@ -21,49 +23,19 @@ async function loadWorkzones() {
 
 // ================= CSV PARSER =================
 function parseCSV(text) {
-  // hapus BOM UTF-8 jika ada
   text = text.replace(/^\uFEFF/, '');
-
   const lines = text.split(/\r?\n/).filter(l => l.trim());
   if (!lines.length) return [];
 
   let delimiter = ',';
   if (lines[0].includes(';')) delimiter = ';';
-  else if (lines[0].includes('\t')) delimiter = '\t';
 
-  const parseLine = (line) => {
-    const result = [];
-    let cur = '';
-    let inQuotes = false;
+  const headers = lines.shift().split(delimiter).map(h => h.trim());
 
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i];
-      const next = line[i + 1];
-
-      if (c === '"' && next === '"' && inQuotes) {
-        cur += '"';
-        i++;
-      } else if (c === '"') {
-        inQuotes = !inQuotes;
-      } else if (c === delimiter && !inQuotes) {
-        result.push(cur);
-        cur = '';
-      } else {
-        cur += c;
-      }
-    }
-    result.push(cur);
-    return result.map(v => v.trim());
-  };
-
-  const headers = parseLine(lines.shift());
-
-  return lines.map(line => {
-    const cols = parseLine(line);
+  return lines.map(l => {
+    const cols = l.split(delimiter);
     const o = {};
-    headers.forEach((h, i) => {
-      o[h] = cols[i] ?? '';
-    });
+    headers.forEach((h, i) => o[h] = cols[i]?.trim() || '');
     return o;
   });
 }
@@ -74,12 +46,15 @@ document.getElementById("fileInput")?.addEventListener("change", e => {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = () => processData(reader.result);
+  reader.onload = () => {
+    ALL_DATA = parseCSV(reader.result);
+    renderData(ALL_DATA);
+  };
   reader.readAsText(file);
 });
 
-function processData(csv) {
-  const data = parseCSV(csv);
+// ================= RENDER DATA (ASLI + DIPAKAI SEARCH) =================
+function renderData(data) {
   const jatimBox = document.querySelector("#jatim .content");
   const balnusBox = document.querySelector("#balnus .content");
   jatimBox.innerHTML = "";
@@ -113,9 +88,30 @@ function processData(csv) {
   document.getElementById("feederCount").textContent = `FEEDER : ${f}`;
   document.getElementById("gponCount").textContent = `GPON : ${g}`;
 
-  if (!jatimBox.children.length) jatimBox.innerHTML = `<div class="empty">Tidak ada data JATIM</div>`;
-  if (!balnusBox.children.length) balnusBox.innerHTML = `<div class="empty">Tidak ada data BALNUS</div>`;
+  if (!jatimBox.children.length) jatimBox.innerHTML = `<div class="empty">Data tidak ditemukan</div>`;
+  if (!balnusBox.children.length) balnusBox.innerHTML = `<div class="empty">Data tidak ditemukan</div>`;
 }
+
+// ================= SEARCH =================
+document.getElementById("btnSearch")?.addEventListener("click", () => {
+  const keyword = document.getElementById("searchInput").value.trim();
+
+  if (!keyword) {
+    renderData(ALL_DATA);
+    return;
+  }
+
+  const incList = keyword
+    .split(',')
+    .map(i => i.trim().toUpperCase())
+    .filter(Boolean);
+
+  const filtered = ALL_DATA.filter(row =>
+    incList.includes((row["INCIDENT"] || "").toUpperCase())
+  );
+
+  renderData(filtered);
+});
 
 // ================= THEME =================
 document.getElementById("themeToggle")?.addEventListener("click", () => {
@@ -134,6 +130,25 @@ function pickBetween(text, start, end) {
   if (!end) return text.substring(from).trim();
   const e = text.indexOf(end, from);
   return (e === -1 ? text.substring(from) : text.substring(from, e)).trim();
+}
+
+function formatMultiLineBlock(text) {
+  if (!text || text === '-') return '-';
+
+  return text
+    .replace(/NODEB\s*:\s*(\d+)/i, 'NODEB : $1')
+    .replace(/BROADBAND\s*:\s*(\d+)/i, '\nBROADBAND : $1')
+    .replace(/EBIS\s*:\s*(\d+)/i, '\nEBIS : $1')
+    .replace(/WIFI\s*:\s*(\d+)/i, '\nWIFI : $1')
+    .trim();
+}
+
+function cleanCC(text) {
+  return text
+    .split('Surveillance')[0]   // potong sebelum Surveillance
+    .split('REPORT INTERNAL')[0]
+    .split('Contact Center')[0]
+    .trim();
 }
 
 function formatAction(text) {
@@ -158,11 +173,15 @@ Duration Time : ${pickBetween(raw,'Duration Time :','Headline')}
 
 Headline : ${pickBetween(raw,'Headline :','Impacted Service')}
 
-Impacted Service :
-${pickBetween(raw,'Impacted Service :','Pelanggan Terganggu')}
+*Impacted Service* :
+${formatMultiLineBlock(
+  pickBetween(raw,'Impacted Service :','Pelanggan Terganggu')
+)}
 
-Pelanggan Terganggu :
-${pickBetween(raw,'Pelanggan Terganggu :','Perangkat Terganggu')}
+*Pelanggan Terganggu* :
+${formatMultiLineBlock(
+  pickBetween(raw,'Pelanggan Terganggu :','Perangkat Terganggu')
+)}
 
 Perangkat Terganggu :
 ${pickBetween(raw,'Perangkat Terganggu :','Penyebab gangguan')}
@@ -177,7 +196,7 @@ PIC :
 ${pickBetween(raw,'PIC :','CC')}
 
 CC :
-${pickBetween(raw,'CC :','Eskalasi')}
+${cleanCC(pickBetween(raw,'CC :','Surveillance'))}
 
 Eskalasi :
 ${pickBetween(raw,'Eskalasi :','Surveillance')}
@@ -195,6 +214,7 @@ TSEL : 0811-3081-500
   document.getElementById('eskOutput').value = result;
 }
 
+
 function copyEskalasi() {
   const o = document.getElementById('eskOutput');
   o.select();
@@ -207,4 +227,4 @@ document.addEventListener('DOMContentLoaded', () => {
   loadWorkzones();
   document.getElementById('btnConvert')?.addEventListener('click', convertEskalasi);
   document.getElementById('btnCopy')?.addEventListener('click', copyEskalasi);
-});
+});   
