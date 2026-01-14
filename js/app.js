@@ -170,6 +170,25 @@ document.getElementById("themeToggle")?.addEventListener("click", () => {
   document.body.classList.toggle("light");
 });
 
+
+// =============COPY JATIM BALNUS =============
+function copyColumn(type){
+  const box = document.querySelector(`#${type} .content`);
+  if (!box || !box.children.length) {
+    alert('Tidak ada data untuk di-copy');
+    return;
+  }
+
+  let text = '';
+  box.querySelectorAll('.card').forEach(card=>{
+    text += card.innerText.trim() + '\n\n';
+  });
+
+  navigator.clipboard.writeText(text.trim()).then(()=>{
+    alert(`Data ${type.toUpperCase()} berhasil di-copy`);
+  });
+}
+
 // ================= ESKALASI =================
 function cleanText(t) {
   return t.replace(/\*/g, ' ').replace(/\s+/g, ' ').trim();
