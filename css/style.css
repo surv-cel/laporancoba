@@ -275,3 +275,26 @@ h1{
   cursor:pointer;
   background:linear-gradient(135deg,var(--accent),var(--accent2));
 }
+
+.section-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+
+.copy-btn{
+  padding:8px 16px;
+  border-radius:999px;
+  border:none;
+  cursor:pointer;
+  font-weight:700;
+  background:linear-gradient(135deg,#22d3ee,#a78bfa);
+  color:#000;
+  transition:.2s;
+}
+
+.copy-btn:hover{
+  transform:scale(1.05);
+  box-shadow:0 6px 20px rgba(0,0,0,.3);
+}
