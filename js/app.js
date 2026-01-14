@@ -96,9 +96,11 @@ function renderData(data) {
   let odc = 0, odp = 0;
   let noJ = 1, noB = 1;
 
-  data.forEach(row => {
-	  const summary = (row["SUMMARY"] || "").toUpperCase();
-	  total++;
+   data.forEach(row => {
+	   const summary = row["SUMMARY"] || "";
+	   const update  = row["WORKLOG SUMMARY"] || "-";
+	   const zone    = (row["WORKZONE"] || "").toUpperCase();
+      total++; 
 
 	  if (summary.includes("(REPAIR) TRA T3") || summary.includes("(RECOVERY) TRA T3")) {
 		bb++;
@@ -114,8 +116,8 @@ function renderData(data) {
 	  if (summary.includes("ODC")) odc++;
 	  if (summary.includes("ODP")) odp++;
 
-    const zone = (row["WORKZONE"] || row["WORK ZONE"] || "").toUpperCase();
-		const update = row["UPDATE"] || row["ACTION"] || "-";
+    // const zone = (row["WORKZONE"] || row["WORK ZONE"] || "").toUpperCase();
+		// const update = row["UPDATE"] || row["ACTION"] || "-";
 
 		const card = document.createElement("div");
 		card.className = "card";
@@ -298,4 +300,4 @@ document.addEventListener('DOMContentLoaded', () => {
   loadWorkzones();
   document.getElementById('btnConvert')?.addEventListener('click', convertEskalasi);
   document.getElementById('btnCopy')?.addEventListener('click', copyEskalasi);
-});      
+});
