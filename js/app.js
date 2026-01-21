@@ -9,6 +9,9 @@ let CRA_RESULT = [];
 // FILTER STATUS AKTIF
 let ACTIVE_STATUSES = [];
 
+let currentData = []; // Data setelah filter + search
+
+
 
 
 async function loadWorkzones() {
@@ -200,6 +203,114 @@ function renderStatusFilter() {
   });
 }
 
+//function handleCSVUpload(parsed) {
+//  allData = parsed;
+//  filteredData = parsed;
+//  renderTable(filteredData);
+//}
+
+function handleCSVUpload(rows) {
+  allData = rows;
+  currentData = rows;
+
+  renderTable(currentData);
+}
+
+
+function applyFilters() {
+  let data = [...ALL_DATA];
+
+  // FILTER STATUS
+  if (ACTIVE_STATUSES.length > 0) {
+    data = data.filter(row =>
+      ACTIVE_STATUSES
+        .map(s => s.toUpperCase())
+        .includes((row['STATUS'] || '').toUpperCase())
+    );
+  }
+
+  // FILTER SEARCH INCIDENT
+  const keyword = document.getElementById("searchInput")?.value.trim();
+  if (keyword) {
+    const incList = keyword
+      .split(',')
+      .map(i => i.trim().toUpperCase())
+      .filter(Boolean);
+
+    data = data.filter(row =>
+      incList.includes((row["INCIDENT"] || "").toUpperCase())
+    );
+  }
+
+  // 🔥🔥🔥 INI KUNCI UTAMA
+  currentData = data;
+
+  renderData(currentData);
+}
+
+
+
+
+document.getElementById("exportExcel").addEventListener("click", () => {
+  if (!currentData.length) {
+    alert("Data kosong / belum difilter");
+    return;
+  }
+
+  exportJatimBalnusExcel(currentData);
+});
+
+
+
+//====== EXPORT K EXCEL 
+function exportJatimBalnusExcel(data) {
+
+  const headers = [
+    "NO",
+    "INCIDENT",
+    "WORKZONE",
+    "SUMMARY",
+    "WORKLOGSUMMARY",
+    "STATUS"
+  ];
+
+  const jatimZones = ["SDY","SBY","MLG","KDR","JBR","BWI","PBL","JBG"];
+  const balnusZones = ["BJM","BDJ","PKY","SMR","TAR","PTK","MTP"];
+
+  const isZone = (text, zones) =>
+    zones.some(z => text?.toUpperCase().includes(z));
+
+  const jatim = [];
+  const balnus = [];
+
+  data.forEach((row, i) => {
+    const record = [
+      jatim.length + 1,
+      row.INCIDENT || "",
+      row.WORKZONE || "",
+      row.SUMMARY || "",
+      row.WORKLOGSUMMARY || "",
+      row.STATUS || ""
+    ];
+
+    if (isZone(row.WORKZONE, jatimZones)) {
+      jatim.push(record);
+    } 
+    else if (isZone(row.WORKZONE, balnusZones)) {
+      balnus.push(record);
+    }
+  });
+
+  const wb = XLSX.utils.book_new();
+
+  const wsJatim = XLSX.utils.aoa_to_sheet([headers, ...jatim]);
+  const wsBalnus = XLSX.utils.aoa_to_sheet([headers, ...balnus]);
+
+  XLSX.utils.book_append_sheet(wb, wsJatim, "JATIM");
+  XLSX.utils.book_append_sheet(wb, wsBalnus, "BALNUS");
+
+  XLSX.writeFile(wb, "LAPORAN_GAMAS_JATIM_BALNUS.xlsx");
+}
 
 
 //=== FUNGSI BARU FILTER BADGE COUNTER ===
