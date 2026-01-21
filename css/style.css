@@ -800,6 +800,31 @@ h1{
   cursor: pointer;
 }
 
+/* ================= EXPORT ================= */
+.export-area {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 20px;
+}
+
+.export-btn {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+.export-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+
 /* ================= STATUS BADGES ================= */
 .status-badges {
   display: flex;
@@ -855,4 +880,4 @@ h1{
   .theme-area {
     justify-content: center;
   }
-}
+}  
