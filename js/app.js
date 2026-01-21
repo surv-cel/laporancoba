@@ -99,7 +99,7 @@ function renderData(data) {
 
    data.forEach(row => {
 	   const summary = row["SUMMARY"] || "";
-	   const update  = row["WORKLOG SUMMARY"] || "-";
+	   	const update  = row["WORKLOG SUMMARY"] || "-";
 	   const zone    = (row["WORKZONE"] || "").toUpperCase();
       total++; 
 
@@ -124,11 +124,11 @@ function renderData(data) {
 		card.className = "card";
 
 		if (DB_JATIM.has(zone)) {
-		  card.innerHTML = `<b>${noJ++}. ${row["INCIDENT"] || '-'}</b><br>${summary}<br><br><b>Update :</b> ${update}`;
+		  card.innerHTML = `<b>${noJ++}. ${row["INCIDENT"] || '-'}</b><br>${summary}<br><b>Update :</b> ${update}`;
 		  jatimBox.appendChild(card);
 		} 
 		else if (DB_BALNUS.has(zone)) {
-		  card.innerHTML = `<b>${noB++}. ${row["INCIDENT"] || '-'}</b><br>${summary}<br><br><b>Update :</b> ${update}`;
+		  card.innerHTML = `<b>${noB++}. ${row["INCIDENT"] || '-'}</b><br>${summary}<br><b>Update :</b> ${update}`;
 		  balnusBox.appendChild(card);
 	}
 });
