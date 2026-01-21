@@ -240,15 +240,16 @@ function convertEskalasi(){
 }
 
 function extractROCName(raw){
-  const m = raw.match(/Surveillance\s+ROC5\s*-\s*([A-Za-z\s]+)/i);
+  const m = raw.match(/Surveillance\s+ROC5\s*[-–]\s*([A-Za-z ]+?)(?:\*|\n|REPORT|$)/i);
   return m ? m[1].trim() : '-';
 }
+
 
 function convertTelegram() {
   const raw = cleanText(document.getElementById('eskInput').value);
 
   const result = `
-Kepada : ${pickBetween(raw,'Kepada :','Current status')}
+Kepada : ${pickBetween(raw,'Kepada :','*Current status')}
 Current status : ${pickBetween(raw,'Current status :','Nomor Tiket')}
 Nomor Tiket : ${pickBetween(raw,'Nomor Tiket :','NE')}
 
@@ -260,16 +261,16 @@ Start Time : ${pickBetween(raw,'Start Time :','End Time')}
 End Time : ${pickBetween(raw,'End Time :','Duration Time')}
 Duration Time : ${pickBetween(raw,'Duration Time :','Headline')}
 
-Headline : ${pickBetween(raw,'Headline :','Impacted Service')}
+Headline : ${pickBetween(raw,'Headline :','*Impacted Service')}
 
 *Impacted Service* :
 ${formatMultiLineBlock(
-  pickBetween(raw,'Impacted Service :','Pelanggan Terganggu')
+  pickBetween(raw,'*Impacted Service* :','*Pelanggan Terganggu* :')
 )}
 
 *Pelanggan Terganggu* :
 ${formatMultiLineBlock(
-  pickBetween(raw,'Pelanggan Terganggu :','Perangkat Terganggu')
+  pickBetween(raw,'*Pelanggan Terganggu* :','Perangkat Terganggu')
 )}
 
 Perangkat Terganggu :
@@ -288,9 +289,9 @@ CC :
 ${cleanCC(pickBetween(raw,'CC :','Surveillance'))}
 
 Eskalasi :
-${pickBetween(raw,'Eskalasi :','Surveillance')}
+${pickBetween(raw,'Eskalasi :','*Surveillance')}
 
-Surveillance ROC5 - ${pickBetween(raw,' ROC5 -','REPORT INTERNAL TELKOM')}
+Surveillance ROC5 - ${pickBetween(raw,' ROC5 -','*REPORT INTERNAL TELKOM')}
 
 REPORT INTERNAL TELKOM
 DILARANG DISEBARLUASKAN KE LUAR TELKOM
@@ -340,11 +341,11 @@ function convertWhatsApp(){
   const headline = pickBetween(raw,'Headline :','Impacted Service');
 
   const impactedService = formatMultiLineBlock(
-    pickBetween(raw,'Impacted Service :','Pelanggan Terganggu')
+    pickBetween(raw,'*Impacted Service* :','*Pelanggan Terganggu* :')
   );
 
   const pelanggan = formatMultiLineBlock(
-    pickBetween(raw,'Pelanggan Terganggu :','Perangkat Terganggu')
+    pickBetween(raw,'*Pelanggan Terganggu* :','Perangkat Terganggu')
   );
 
   const perangkat = pickBetween(raw,'Perangkat Terganggu :','Penyebab gangguan');
@@ -479,10 +480,10 @@ function stripOldFooter(raw){
 
 
 function formatWAFooter(raw){
-  const rocName = extractROCName(raw) || 'ROC5';
+  const rocName = extractROCName(raw) || '-';
 
   return `
-Surveillance ROC5 - ${pickBetween(raw,' ROC5 -','REPORT INTERNAL TELKOM')}
+Surveillance ROC5 - ${rocName}
 
 Eskalasi : HoD Bpk @
 
