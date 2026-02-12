@@ -12,6 +12,16 @@ let ACTIVE_STATUSES = [];
 //ambil dari data google sheet
 let PIC_DB = {};
 
+//ambil untuk resume cra DM 
+let DISTRICT_DB = {};
+
+// DISTRICT_DB[witel] = district;
+
+window.DISTRICT_DB = {};
+window.CRA_RESULT = [];
+
+
+
 let currentData = []; // Data setelah filter + search
 
 
@@ -53,6 +63,31 @@ async function loadPICMapping() {
 
   } catch (err) {
     console.error("Gagal load PIC mapping:", err);
+  }
+}
+
+// fungsion load untuk resume cra tabel 
+async function loadDistrictMapping() {
+  const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT730gBi8fU16gEo6ZmE3d5MQw5Xh2isbMeoI4SM-BfyP2uK8sL85skV70jW83vdXJAuhPF0JxS3OS7/pub?output=csv";
+
+  try {
+    const res = await fetch(url);
+    const text = await res.text();
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    lines.shift(); // buang header
+
+    lines.forEach(line => {
+      const cols = line.split(",");
+      const district = cols[0]?.trim();
+      const witel = cols[1]?.trim().toUpperCase();
+
+      if (witel && district) {
+        DISTRICT_DB[witel] = district;
+      }
+    });
+
+  } catch (err) {
+    console.error("Gagal load district:", err);
   }
 }
 
@@ -993,6 +1028,11 @@ document.getElementById('craFile')?.addEventListener('change', e => {
       const data = parseCRAExcel(evt.target.result);
       processCRA(data);
       CRA_RESULT = CRA_DATA;
+	  
+	   // 🔥 TAMBAH INI
+  window.CRA_RESULT = CRA_RESULT;
+  window.DISTRICT_DB = DISTRICT_DB;
+  
     };
     reader.readAsArrayBuffer(file);
     return;
@@ -1003,6 +1043,10 @@ document.getElementById('craFile')?.addEventListener('change', e => {
     const data = parseCRACSV(text);
     processCRA(data);
     CRA_RESULT = CRA_DATA;
+	 // 🔥 TAMBAH INI
+  window.CRA_RESULT = CRA_RESULT;
+  window.DISTRICT_DB = DISTRICT_DB;
+  
   };
   reader.readAsText(file);
 });
@@ -1163,18 +1207,109 @@ PIC : ${pic}
 });
 
 
+document.getElementById("btnResumeCRA").addEventListener("click", () => {
+
+  if (!CRA_RESULT.length) {
+    alert("Data CRA kosong.");
+    return;
+  }
+
+  let resume = {};
+  let totalAll = 0;
+  let totalOn = 0;
+  let totalBelum = 0;
+  let totalCancel = 0;
+
+  CRA_RESULT.forEach(row => {
+
+    let witel = (row.kota || "")
+      .toUpperCase()
+      .split(",")[0]
+      .trim();
+
+// tes error 
+console.log("RAW:", row.kota);
+console.log("PROCESSED:", witel);
+console.log("MATCH DB:", DISTRICT_DB[witel]);
+console.log("CHAR CODES:", [...witel].map(c => c.charCodeAt(0)));
+console.log("----");
+
+    let cleanWitel = (witel || "").toUpperCase().trim();
+let district = "UNMAPPED";
+
+for (let key in DISTRICT_DB) {
+  if (cleanWitel.includes(key)) {
+    district = DISTRICT_DB[key];
+    break;
+  }
+}
+
+
+    if (!resume[district]) {
+      resume[district] = {
+        total: 0,
+        on: 0,
+        belum: 0,
+        cancel: 0
+      };
+    }
+
+    resume[district].total++;
+    totalAll++;
+
+    if (row.status === "ON SCHEDULE") {
+      resume[district].on++;
+      totalOn++;
+    }
+    else if (row.status === "BELUM DIISI") {
+      resume[district].belum++;
+      totalBelum++;
+    }
+    else {
+      resume[district].cancel++;
+      totalCancel++;
+    }
+
+  });
+
+  let text = "*Resume CRA*\n";
+  text += "[Jumlah | OnSchedule | Belum | NOK/Cancel]\n\n";
+
+  let index = 1;
+
+  Object.keys(resume).forEach(district => {
+    let d = resume[district];
+    text += `${index}. District ${district} : [ ${d.total} | ${d.on} | ${d.belum} | ${d.cancel} ]\n`;
+    index++;
+  });
+
+  text += `\nTotal : [ ${totalAll} | ${totalOn} | ${totalBelum} | ${totalCancel} ]`;
+
+  const textarea = document.getElementById("resumeText");
+  const modal = document.getElementById("resumeModal");
+
+  if (!textarea || !modal) {
+    alert("Resume Modal belum ada di HTML.");
+    return;
+  }
+
+  textarea.value = text;
+  modal.style.display = "flex";
+
+});
+
+
 
 
 
 // ================= INIT =================
 document.addEventListener('DOMContentLoaded', () => {
+
   loadWorkzones();
   loadPICMapping();
-  
-  // panggil multi select 
+  loadDistrictMapping();
   renderStatusFilter();
 
-  // AUTO CONVERT SAAT PASTE / INPUT
   const eskInput = document.getElementById('eskInput');
   if (eskInput) {
     eskInput.addEventListener('input', () => {
@@ -1184,9 +1319,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // tombol lain tetap
+  // Resume Modal
+  document.getElementById("copyResume")?.addEventListener("click", () => {
+    const textarea = document.getElementById("resumeText");
+    if (!textarea) return;
+    navigator.clipboard.writeText(textarea.value);
+    alert("Resume berhasil di-copy!");
+  });
+
+  document.getElementById("closeResume")?.addEventListener("click", () => {
+    document.getElementById("resumeModal").style.display = "none";
+  });
+
   document.getElementById('btnCopy')?.addEventListener('click', copyEskalasi);
   document.getElementById('btnExportCRA')?.addEventListener('click', exportCRAtoExcel);
-  document.getElementById('btnExportTXT')
-    ?.addEventListener('click', exportCRAtoTXT);
+  document.getElementById('btnExportTXT')?.addEventListener('click', exportCRAtoTXT);
+
 });
