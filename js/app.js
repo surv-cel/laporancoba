@@ -9,6 +9,9 @@ let CRA_RESULT = [];
 // FILTER STATUS AKTIF
 let ACTIVE_STATUSES = [];
 
+//ambil dari data google sheet
+let PIC_DB = {};
+
 let currentData = []; // Data setelah filter + search
 
 
@@ -29,6 +32,30 @@ async function loadWorkzones() {
     console.error('Gagal load workzones:', err);
   }
 }
+
+//penambahan pic mention 
+async function loadPICMapping() {
+  const url = "LINK_CSV_GOOGLE_SHEET_PIC_KAMU";
+
+  try {
+    const res = await fetch(url);
+    const text = await res.text();
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    lines.shift(); // buang header
+
+    lines.forEach(line => {
+      const cols = line.split(",");
+      const witel = cols[0]?.trim().toUpperCase();
+      const pic = cols[1]?.trim();
+
+      if (witel) PIC_DB[witel] = pic;
+    });
+
+  } catch (err) {
+    console.error("Gagal load PIC mapping:", err);
+  }
+}
+
 
 // ================= CSV PARSER =================
 function parseCSV(text) {
@@ -819,6 +846,7 @@ function renderCRA(data) {
       <td>${row.noCRA}</td>
       <td>${row.deskripsi}</td>
       <td>${row.lokasi.join(', ')}</td>
+	  <td>${row.kota}</td>
       <td>${row.regional}</td>
       <td>${row.pic}</td>
       <td>${row.tanggal}</td>
@@ -892,7 +920,7 @@ function processCRA(rawData) {
         deskripsi: row['JUDUL'] || row['DESKRIPSI'] || row['DESCRIPTION'] || '',
         lokasi: [...lokasiArr],
         regional: row['REGIONAL'] || '',
-        kota: row['KOTA'] || row['CITY'] || '',
+        kota: row['WITEL'] || row['KOTA'] || row['CITY'] || '',
         segment: row['SEGMENT'] || '',
         pic: row['PIC'] || '',
         // tanggal: row['TANGGAL'] || row['DATE'] || '',
@@ -1068,9 +1096,80 @@ function exportCRAtoTXT() {
 }
 
 
+// export bu amel 
+document.getElementById("btnExportTXTAmel").addEventListener("click", function () {
+
+  if (!CRA_RESULT || CRA_RESULT.length === 0) {
+    alert("Data CRA belum diupload.");
+    return;
+  }
+
+  let hasil = [];
+
+// ===== HITUNG SUMMARY =====
+let total = CRA_RESULT.length;
+
+let onSchedule = CRA_RESULT.filter(r => r.status === "ON SCHEDULE").length;
+let cancel = CRA_RESULT.filter(r => r.status === "CANCEL").length;
+let belumDiisi = CRA_RESULT.filter(r => r.status === "BELUM DIISI").length;
+
+// Header Summary
+hasil.push(
+`KEGIATAN CRA MALAM INI : ${total} KEGIATAN
+
+ON SCHEDULE : ${onSchedule}
+CANCEL : ${cancel}
+BELUM DIISI : ${belumDiisi}
+TOTAL : ${total}
+
+`
+);
+
+console.log(CRA_RESULT[0])
+  CRA_RESULT.forEach((row, index) => {
+
+    let noCraFull = row.noCRA || "";
+    let noCra = noCraFull.split("/")[0].trim();
+
+    let judul = row.deskripsi || "";
+	let region = (row.kota || "").toUpperCase();
+	let pic = PIC_DB[region] || "";
+    // lokasi kamu berupa array
+    let lokasi = Array.isArray(row.lokasi)
+      ? row.lokasi.join(", ")
+      : (row.lokasi || "");
+
+    let text =
+`${index + 1}. ${noCra}
+KEGIATAN : ${judul}
+REGION : ${region}
+LOKASI : ${lokasi}
+PIC : ${pic}
+
+`;
+
+    hasil.push(text);
+  });
+
+  const blob = new Blob([hasil.join("\n")], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "EXPORT_TXT_PERMINTAAN_BU_AMEL.txt";
+  a.click();
+
+  URL.revokeObjectURL(url);
+});
+
+
+
+
+
 // ================= INIT =================
 document.addEventListener('DOMContentLoaded', () => {
   loadWorkzones();
+  loadPICMapping();
   
   // panggil multi select 
   renderStatusFilter();
