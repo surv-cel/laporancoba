@@ -52,6 +52,7 @@
 
 </div>
 
+
 <!-- ================= FILTER ================= -->
 <div id="statusFilterBox" class="status-filter"></div>
 
@@ -82,6 +83,87 @@
   <div class="content"></div>
 </div>
 
+
+
+<!-- GAMAS TELEGRAM CONVERTER SECTION -->
+<div class="telegram-converter">
+    <!-- Judul Besar di Tengah -->
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 42px; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">
+            📱 CONVERTER GAMAS TIDAK STANDART
+        </h1>
+        <h2 style="font-size: 24px; color: #ff6b6b; font-weight: 600; letter-spacing: 2px;">
+    </div>
+
+    <!-- Card Utama -->
+    <div style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); border: 1px solid #e0e0e0; max-width: 1000px; margin: 0 auto;">
+        
+        <!-- Deskripsi -->
+        <p style="color: #666; margin-bottom: 20px; font-size: 16px; text-align: center;">
+            ✨ Copy paste data GAMAS dari Telegram di bawah ini — <strong>otomatis terformat!</strong>
+        </p>
+        
+        <!-- Textarea Input -->
+        <div style="position: relative; margin-bottom: 20px;">
+            <textarea 
+                id="telegramData" 
+                rows="8" 
+                oninput="autoConvertGamas()"
+                placeholder="Contoh: 
+/open_gamas_distribusi
+Nama / NIK pelapor : 720178 / PRASADJA
+Witel : KEDIRI
+..."
+                style="width: 100%; 
+                       padding: 20px; 
+                       border: 2px solid #e0e0e0; 
+                       border-radius: 15px; 
+                       font-family: 'Courier New', monospace; 
+                       font-size: 14px;
+                       line-height: 1.6;
+                       resize: vertical;
+                       transition: all 0.3s;
+                       box-sizing: border-box;
+                       background: #fafafa;"
+                onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102,126,234,0.1)';"
+                onblur="this.style.borderColor='#e0e0e0'; this.style.boxShadow='none';"
+            ></textarea>
+            
+            <!-- Status Badge -->
+            <div style="position: absolute; top: 15px; right: 15px; background: white; padding: 5px 15px; border-radius: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <span id="statusIndicator" style="font-size: 13px; font-weight: 600; color: #666;">
+                    ⏳ Menunggu input...
+                </span>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; justify-content: center;">
+            <button onclick="clearInput()" style="padding: 12px 30px; background: #f44336; color: white; border: none; border-radius: 50px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px;">
+                <span>🗑️</span> Clear Input
+            </button>
+            <button onclick="copyResult()" style="padding: 12px 30px; background: #4CAF50; color: white; border: none; border-radius: 50px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px;">
+                <span>📋</span> Copy Hasil
+            </button>
+        </div>
+        
+        <!-- Result Panel - SIMPLE, hanya 1 baris -->
+        <div style="background: #f8f9fa; border-radius: 15px; padding: 20px; border: 2px solid #4CAF50;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                <span style="background: #4CAF50; color: white; padding: 5px 15px; border-radius: 30px; font-size: 13px; font-weight: 600;">📄 OUTPUT</span>
+            </div>
+            <div id="telegramResult" style="font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.6; background: #ffffff; padding: 20px; border-radius: 10px; white-space: pre-wrap; word-break: break-word; border: 1px solid #e0e0e0; min-height: 80px;">
+                ✨ Hasil format akan muncul di sini...
+            </div>
+        </div>
+        
+        <!-- Info Tips -->
+        <div style="margin-top: 20px; padding: 12px 15px; background: #e8f4fd; border-radius: 10px; font-size: 13px; color: #0369a1; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 18px;">💡</span>
+            <span>Cukup paste data GAMAS, hasil akan langsung terformat jadi 1 baris siap copy!</span>
+        </div>
+    </div>
+</div>
 
 <!-- ================= CONVERTER ESKALASI ================= -->
 <section class="section" id="eskalasi">
