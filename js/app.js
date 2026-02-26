@@ -740,6 +740,193 @@ function copyColumn(type) {
   });
 }
 
+// ======GAMAS TIDAK STANDART =========
+// ================= GAMAS TELEGRAM CONVERTER =================
+function parseGamasTelegram(text) {
+    console.log("📥 Input:", text);
+    
+    // Default values
+    let data = {
+        datek: '-',
+        sto: '-',
+        witel: '-',
+        penyebab: '-',
+        estimasi: '4',
+        slot: '-',
+        pic: '-',
+        case: '-',
+        odp: []
+    };
+    
+    // Extract dengan regex sederhana
+    const stoMatch = text.match(/STO\s*:?\s*([^\n]+)/i);
+    if (stoMatch) data.sto = stoMatch[1].trim();
+    
+    const witelMatch = text.match(/Witel\s*:?\s*([^\n]+)/i);
+    if (witelMatch) data.witel = witelMatch[1].trim();
+    
+    const datekMatch = text.match(/Datek\s*:?\s*([^\n]+)/i);
+    if (datekMatch) data.datek = datekMatch[1].trim();
+    
+    const penyebabMatch = text.match(/Penyebab\s*:?\s*([^\n]+)/i);
+    if (penyebabMatch) data.penyebab = penyebabMatch[1].trim();
+    
+    const estimasiMatch = text.match(/Estimasi\s*:?\s*(\d+)/i);
+    if (estimasiMatch) data.estimasi = estimasiMatch[1];
+    
+    const slotMatch = text.match(/Slot.*?port.*?(GPON[^\n]+)/i);
+    if (slotMatch) data.slot = slotMatch[1].trim();
+    
+    const caseMatch = text.match(/Case\s*:?\s*([^\n]+)/i);
+    if (caseMatch) data.case = caseMatch[1].trim();
+    
+    // Extract PIC
+    const picMatch = text.match(/(?:Pic|PIC)\s*:?\s*([^\n]+)/i);
+    if (picMatch) {
+        data.pic = picMatch[1].trim();
+    } else {
+        // Cari dalam tanda kurung
+        const picParentheses = text.match(/\(([^)]*(?:PAK|pak|Pic|PIC|pic)[^)]*)\)/i);
+        if (picParentheses) {
+            data.pic = picParentheses[1].trim();
+        } else {
+            const namaMatch = text.match(/Nama\s*\/\s*NIK\s*pelapor\s*:?\s*([^\n]+)/i);
+            if (namaMatch) {
+                let picText = namaMatch[1].trim();
+                // Format: "720178 / PRASADJA" -> ambil "PRASADJA"
+                if (picText.includes('/')) {
+                    const parts = picText.split('/');
+                    picText = parts[1]?.trim() || parts[0]?.trim();
+                }
+                data.pic = picText;
+            }
+        }
+    }
+    
+    // Extract ODP
+    const odpRegex = /(ODP-[^\s,]+)/g;
+    let match;
+    while ((match = odpRegex.exec(text)) !== null) {
+        data.odp.push(match[1]);
+    }
+    
+    // Format ODP list
+    const odpList = data.odp.slice(0, 5).join(', ');
+    const odpInfo = data.odp.length > 5 ? 
+        `${odpList} (+${data.odp.length-5} lainnya)` : 
+        (data.odp.length > 0 ? odpList : '-');
+    
+    // Calculate estimasi time
+    const jam = parseInt(data.estimasi) || 4;
+    const estTime = new Date();
+    estTime.setHours(estTime.getHours() + jam);
+    const estStr = `${estTime.getDate().toString().padStart(2,'0')}/${(estTime.getMonth()+1).toString().padStart(2,'0')}/${estTime.getFullYear()} ${estTime.getHours().toString().padStart(2,'0')}:00`;
+    
+    // Clean PIC
+    let picText = data.pic;
+    if (picText.includes('Nama') || picText.includes('NIK')) {
+        picText = picText.replace(/Nama\s*\/\s*NIK\s*pelapor\s*:?\s*/i, '').trim();
+    }
+    
+    console.log("✅ Data parsed:", data);
+    
+    // Return object lengkap
+    return {
+        ...data,
+        odpInfo: odpInfo,
+        estStr: estStr,
+        format: `GAMAS | AKSES | DISTRIBUSI | TIF-3 | REG-5 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 PENYEBAB    : ${data.penyebab}
+🔧 PERBAIKAN   : ${data.case || 'PERBAIKAN'}
+📍 DATEK       : ${data.datek}
+🏢 STO         : ${data.sto}
+⏰ ESTIMASI    : (EST ${estStr})
+🔌 SLOT GPON   : ${data.slot}
+👤 PIC         : (${picText})
+📦 ODP TERIMBAS: ${odpInfo}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 COPY READY: 
+GAMAS | AKSES | DISTRIBUSI | TIF-3 | REG-5 | ${data.penyebab} | PERBAIKAN | ${data.datek} | ${data.sto} | (EST ${estStr}) | ${data.slot} | (${picText})`
+    };
+}
+
+// Auto convert function
+function autoConvertGamas() {
+    console.log("🔄 Auto convert dijalankan...");
+    
+    const inputText = document.getElementById('telegramData')?.value;
+    const resultDiv = document.getElementById('telegramResult');
+    const statusSpan = document.getElementById('statusIndicator');
+    const previewSpan = document.getElementById('previewText');
+    
+    if (!inputText || !resultDiv) {
+        console.error("Element tidak ditemukan!");
+        return;
+    }
+    
+    if (!inputText.trim()) {
+        resultDiv.innerHTML = '✨ Hasil format akan muncul otomatis saat kamu paste...';
+        if(statusSpan) statusSpan.innerHTML = '⏳ Menunggu input...';
+        if(previewSpan) previewSpan.innerHTML = 'Belum ada data';
+        return;
+    }
+    
+    if(statusSpan) statusSpan.innerHTML = '⚡ Memproses...';
+    
+    try {
+        // Parse data
+        const data = parseGamasTelegram(inputText);
+        
+        // Tampilkan hasil
+        resultDiv.innerHTML = data.format.replace(/\n/g, '<br>');
+        resultDiv.style.background = '#e8f5e9';
+        resultDiv.style.border = '1px solid #4CAF50';
+        
+        if(statusSpan) statusSpan.innerHTML = '✅ Selesai!';
+        if(previewSpan) previewSpan.innerHTML = `📍 STO: ${data.sto} | 📦 ODP: ${data.odp.length} | ⏱ ${data.estimasi} jam`;
+        
+    } catch(e) {
+        resultDiv.innerHTML = `❌ ERROR: ${e.message}`;
+        resultDiv.style.background = '#ffebee';
+        resultDiv.style.border = '1px solid #f44336';
+        if(statusSpan) statusSpan.innerHTML = '❌ Error';
+        console.error(e);
+    }
+}
+
+// Copy result function
+function copyResult() {
+    const resultDiv = document.getElementById('telegramResult');
+    if (!resultDiv) return;
+    
+    // Ambil teks dari result (tanpa HTML)
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = resultDiv.innerHTML;
+    const textToCopy = tempDiv.textContent || tempDiv.innerText || '';
+    
+    navigator.clipboard.writeText(textToCopy)
+        .then(() => {
+            alert('✅ Hasil tersalin!');
+            resultDiv.style.background = '#d4edda';
+            setTimeout(() => {
+                resultDiv.style.background = '#e8f5e9';
+            }, 200);
+        })
+        .catch(() => alert('❌ Gagal menyalin, silakan copy manual.'));
+}
+
+// Clear input function
+function clearInput() {
+    document.getElementById('telegramData').value = '';
+    document.getElementById('telegramResult').innerHTML = '✨ Hasil format akan muncul otomatis saat kamu paste...';
+    document.getElementById('telegramResult').style.background = '#f9f9f9';
+    document.getElementById('statusIndicator').innerHTML = '⏳ Menunggu input...';
+    document.getElementById('previewText').innerText = 'Belum ada data';
+}
+
+
+
 // ================= ESKALASI =================
 function cleanText(t) {
   return t
