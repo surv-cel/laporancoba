@@ -741,9 +741,9 @@ function copyColumn(type) {
 }
 
 // ======GAMAS TIDAK STANDART =========
-// ================= GAMAS TELEGRAM CONVERTER =================
+// ================= GAMAS CONVERTER - VERSION SIMPLE =================
 function parseGamasTelegram(text) {
-    console.log("📥 Input:", text);
+    console.log("📥 Parsing...");
     
     // Default values
     let data = {
@@ -754,16 +754,12 @@ function parseGamasTelegram(text) {
         estimasi: '4',
         slot: '-',
         pic: '-',
-        case: '-',
         odp: []
     };
     
-    // Extract dengan regex sederhana
+    // Extract dengan regex
     const stoMatch = text.match(/STO\s*:?\s*([^\n]+)/i);
     if (stoMatch) data.sto = stoMatch[1].trim();
-    
-    const witelMatch = text.match(/Witel\s*:?\s*([^\n]+)/i);
-    if (witelMatch) data.witel = witelMatch[1].trim();
     
     const datekMatch = text.match(/Datek\s*:?\s*([^\n]+)/i);
     if (datekMatch) data.datek = datekMatch[1].trim();
@@ -777,29 +773,19 @@ function parseGamasTelegram(text) {
     const slotMatch = text.match(/Slot.*?port.*?(GPON[^\n]+)/i);
     if (slotMatch) data.slot = slotMatch[1].trim();
     
-    const caseMatch = text.match(/Case\s*:?\s*([^\n]+)/i);
-    if (caseMatch) data.case = caseMatch[1].trim();
-    
     // Extract PIC
-    const picMatch = text.match(/(?:Pic|PIC)\s*:?\s*([^\n]+)/i);
+    const picMatch = text.match(/\(([^)]*(?:PAK|pak|Pic|PIC|pic)[^)]*)\)/i);
     if (picMatch) {
         data.pic = picMatch[1].trim();
     } else {
-        // Cari dalam tanda kurung
-        const picParentheses = text.match(/\(([^)]*(?:PAK|pak|Pic|PIC|pic)[^)]*)\)/i);
-        if (picParentheses) {
-            data.pic = picParentheses[1].trim();
-        } else {
-            const namaMatch = text.match(/Nama\s*\/\s*NIK\s*pelapor\s*:?\s*([^\n]+)/i);
-            if (namaMatch) {
-                let picText = namaMatch[1].trim();
-                // Format: "720178 / PRASADJA" -> ambil "PRASADJA"
-                if (picText.includes('/')) {
-                    const parts = picText.split('/');
-                    picText = parts[1]?.trim() || parts[0]?.trim();
-                }
-                data.pic = picText;
+        const namaMatch = text.match(/Nama\s*\/\s*NIK\s*pelapor\s*:?\s*([^\n]+)/i);
+        if (namaMatch) {
+            let picText = namaMatch[1].trim();
+            if (picText.includes('/')) {
+                const parts = picText.split('/');
+                picText = parts[1]?.trim() || parts[0]?.trim();
             }
+            data.pic = picText;
         }
     }
     
@@ -810,121 +796,78 @@ function parseGamasTelegram(text) {
         data.odp.push(match[1]);
     }
     
-    // Format ODP list
-    const odpList = data.odp.slice(0, 5).join(', ');
-    const odpInfo = data.odp.length > 5 ? 
-        `${odpList} (+${data.odp.length-5} lainnya)` : 
-        (data.odp.length > 0 ? odpList : '-');
-    
     // Calculate estimasi time
     const jam = parseInt(data.estimasi) || 4;
     const estTime = new Date();
     estTime.setHours(estTime.getHours() + jam);
     const estStr = `${estTime.getDate().toString().padStart(2,'0')}/${(estTime.getMonth()+1).toString().padStart(2,'0')}/${estTime.getFullYear()} ${estTime.getHours().toString().padStart(2,'0')}:00`;
     
-    // Clean PIC
-    let picText = data.pic;
-    if (picText.includes('Nama') || picText.includes('NIK')) {
-        picText = picText.replace(/Nama\s*\/\s*NIK\s*pelapor\s*:?\s*/i, '').trim();
-    }
+    // HANYA 1 BARIS OUTPUT
+    const output = `GAMAS | AKSES | DISTRIBUSI | TIF-3 | REG-5 | ${data.penyebab} | PERBAIKAN | ${data.datek} | ${data.sto} | (EST ${estStr}) | ${data.slot} | (${data.pic})`;
     
-    console.log("✅ Data parsed:", data);
-    
-    // Return object lengkap
-    return {
-        ...data,
-        odpInfo: odpInfo,
-        estStr: estStr,
-        format: `GAMAS | AKSES | DISTRIBUSI | TIF-3 | REG-5 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📌 PENYEBAB    : ${data.penyebab}
-🔧 PERBAIKAN   : ${data.case || 'PERBAIKAN'}
-📍 DATEK       : ${data.datek}
-🏢 STO         : ${data.sto}
-⏰ ESTIMASI    : (EST ${estStr})
-🔌 SLOT GPON   : ${data.slot}
-👤 PIC         : (${picText})
-📦 ODP TERIMBAS: ${odpInfo}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 COPY READY: 
-GAMAS | AKSES | DISTRIBUSI | TIF-3 | REG-5 | ${data.penyebab} | PERBAIKAN | ${data.datek} | ${data.sto} | (EST ${estStr}) | ${data.slot} | (${picText})`
-    };
+    return output;
 }
 
-// Auto convert function
 function autoConvertGamas() {
-    console.log("🔄 Auto convert dijalankan...");
+    console.log("🔄 Auto convert...");
     
-    const inputText = document.getElementById('telegramData')?.value;
-    const resultDiv = document.getElementById('telegramResult');
+    const input = document.getElementById('telegramData');
+    const result = document.getElementById('telegramResult');
     const statusSpan = document.getElementById('statusIndicator');
-    const previewSpan = document.getElementById('previewText');
     
-    if (!inputText || !resultDiv) {
-        console.error("Element tidak ditemukan!");
-        return;
-    }
+    if (!input || !result) return;
     
-    if (!inputText.trim()) {
-        resultDiv.innerHTML = '✨ Hasil format akan muncul otomatis saat kamu paste...';
+    const text = input.value.trim();
+    
+    if (!text) {
+        result.innerHTML = '✨ Hasil format akan muncul di sini...';
         if(statusSpan) statusSpan.innerHTML = '⏳ Menunggu input...';
-        if(previewSpan) previewSpan.innerHTML = 'Belum ada data';
         return;
     }
     
     if(statusSpan) statusSpan.innerHTML = '⚡ Memproses...';
     
     try {
-        // Parse data
-        const data = parseGamasTelegram(inputText);
+        // Parse dan dapatkan 1 baris output
+        const output = parseGamasTelegram(text);
         
-        // Tampilkan hasil
-        resultDiv.innerHTML = data.format.replace(/\n/g, '<br>');
-        resultDiv.style.background = '#e8f5e9';
-        resultDiv.style.border = '1px solid #4CAF50';
+        // Tampilkan hasil (1 baris doang)
+        result.innerHTML = output;
+        result.style.background = '#ffffff';
         
         if(statusSpan) statusSpan.innerHTML = '✅ Selesai!';
-        if(previewSpan) previewSpan.innerHTML = `📍 STO: ${data.sto} | 📦 ODP: ${data.odp.length} | ⏱ ${data.estimasi} jam`;
         
     } catch(e) {
-        resultDiv.innerHTML = `❌ ERROR: ${e.message}`;
-        resultDiv.style.background = '#ffebee';
-        resultDiv.style.border = '1px solid #f44336';
+        result.innerHTML = `❌ Error: ${e.message}`;
         if(statusSpan) statusSpan.innerHTML = '❌ Error';
         console.error(e);
     }
 }
 
-// Copy result function
 function copyResult() {
-    const resultDiv = document.getElementById('telegramResult');
-    if (!resultDiv) return;
+    const result = document.getElementById('telegramResult');
+    if (!result) return;
     
-    // Ambil teks dari result (tanpa HTML)
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = resultDiv.innerHTML;
-    const textToCopy = tempDiv.textContent || tempDiv.innerText || '';
+    const text = result.innerText;
+    if (text.includes('✨') || text.includes('❌')) {
+        alert('Belum ada hasil yang bisa di-copy!');
+        return;
+    }
     
-    navigator.clipboard.writeText(textToCopy)
+    navigator.clipboard.writeText(text)
         .then(() => {
             alert('✅ Hasil tersalin!');
-            resultDiv.style.background = '#d4edda';
-            setTimeout(() => {
-                resultDiv.style.background = '#e8f5e9';
-            }, 200);
+            result.style.background = '#f0fff0';
+            setTimeout(() => result.style.background = '#ffffff', 200);
         })
-        .catch(() => alert('❌ Gagal menyalin, silakan copy manual.'));
+        .catch(() => alert('❌ Gagal menyalin'));
 }
 
-// Clear input function
 function clearInput() {
     document.getElementById('telegramData').value = '';
-    document.getElementById('telegramResult').innerHTML = '✨ Hasil format akan muncul otomatis saat kamu paste...';
-    document.getElementById('telegramResult').style.background = '#f9f9f9';
+    document.getElementById('telegramResult').innerHTML = '✨ Hasil format akan muncul di sini...';
     document.getElementById('statusIndicator').innerHTML = '⏳ Menunggu input...';
-    document.getElementById('previewText').innerText = 'Belum ada data';
 }
-
 
 
 // ================= ESKALASI =================
