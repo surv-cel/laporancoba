@@ -920,3 +920,41 @@ body.light .cra-status option {
         background: #332e1f;
         color: #ffb74d;
     }
+	
+/* Monitor Tera Section */
+.monitor-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.monitor-section h3 {
+    margin: 0;
+    color: #2c5364;
+    font-size: 1.2rem;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.btn-success {
+    background: #27ae60;
+    color: white;
+}
+
+.btn-primary {
+    background: #2c5364;
+    color: white;
+}
+
+.monitor-section .stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
