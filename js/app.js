@@ -869,6 +869,151 @@ function clearInput() {
     document.getElementById('statusIndicator').innerHTML = '⏳ Menunggu input...';
 }
 
+// ========== MONITOR TERA > 50% ==========
+const graphLinks = [
+    { id: 154354, name: "KBL - JT2 BE5", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=154354", kapasitas: 2300 },
+    { id: 138038, name: "KBL - BTC BE15", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=138038", kapasitas: 2800 },
+    { id: 142320, name: "KBL - KD BE31", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=142320", kapasitas: 1000 },
+    { id: 107472, name: "KBL - GBL BE20", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=107472", kapasitas: 800 },
+    { id: 142325, name: "KBL - PS BE45", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=142325", kapasitas: 800 },
+    { id: 145513, name: "KBL - RKT BE9", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=145513", kapasitas: 3100 },
+    { id: 42605, name: "KBL - GIN BE16", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=42605", kapasitas: 140 },
+    { id: 139806, name: "KBL - SGR BE4", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=139806", kapasitas: 1000 },
+    { id: 142194, name: "KBL - MMR BE22", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=142194", kapasitas: 200 },
+    { id: 145666, name: "KBL - BIM BE23", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=145666", kapasitas: 300 },
+    { id: 146199, name: "RKT - JR BE45", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=146199", kapasitas: 900 },
+    { id: 145487, name: "RKT - ML BE40", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=145487", kapasitas: 1000 },
+    { id: 145511, name: "RKT - CKA BE15", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=145511", kapasitas: 1900 },
+    { id: 136992, name: "RKT - BDS BE17", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=136992", kapasitas: 2500 },
+    { id: 145477, name: "RKT - KPN BE20", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=145477", kapasitas: 300 },
+    { id: 145476, name: "RKT - MTR BE29", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=145476", kapasitas: 400 },
+    { id: 126916, name: "RKT - KLM BE16", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=126916", kapasitas: 900 }
+];
+
+let currentTeraLinks = [];
+
+// Fungsi fetch data (gunakan proxy untuk CORS)
+async function fetchTeraData() {
+    const container = document.getElementById('teraListContainer');
+    const updateStatus = document.getElementById('updateStatus');
+    
+    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">⏳ Mengambil data dari graph...</div>';
+    
+    try {
+        // Gunakan data dummy dulu (ganti dengan fetch real setelah deploy)
+        const dummyData = {
+            154354: { raw: "1.91 T", value: 1910 },
+            138038: { raw: "1.49 T", value: 1490 },
+            142320: { raw: "449 G", value: 449 },
+            107472: { raw: "324 G", value: 324 },
+            142325: { raw: "235 G", value: 235 },
+            145513: { raw: "2.84 T", value: 2840 },
+            42605: { raw: "0.2 G", value: 0.2 },
+            139806: { raw: "0.2 G", value: 0.2 },
+            142194: { raw: "18 G", value: 18 },
+            145666: { raw: "116 G", value: 116 },
+            146199: { raw: "453 G", value: 453 },
+            145487: { raw: "474 G", value: 474 },
+            145511: { raw: "1.005 T", value: 1005 },
+            136992: { raw: "2 G", value: 2 },
+            145477: { raw: "188 G", value: 188 },
+            145476: { raw: "403 G", value: 403 },
+            126916: { raw: "698.24 G", value: 698.24 }
+        };
+        
+        const results = graphLinks.map(link => {
+            const data = dummyData[link.id] || { raw: "0 G", value: 0 };
+            const persen = (data.value / link.kapasitas) * 100;
+            return { ...link, ...data, persen };
+        });
+        
+        currentTeraLinks = results.filter(r => r.persen > 50);
+        displayTeraResults(currentTeraLinks);
+        updateTeraStats(results, currentTeraLinks);
+        
+        const now = new Date().toLocaleString('id-ID');
+        updateStatus.innerHTML = `Terakhir update: ${now}`;
+        
+    } catch (error) {
+        container.innerHTML = `<div style="color: #e74c3c; text-align: center; padding: 40px;">❌ Error: ${error.message}</div>`;
+    }
+}
+
+function displayTeraResults(links) {
+    const container = document.getElementById('teraListContainer');
+    
+    if (links.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">📭 Tidak ada link dengan utilisasi > 50%</div>';
+        return;
+    }
+    
+    links.sort((a, b) => b.persen - a.persen);
+    
+    let html = '';
+    links.forEach(link => {
+        let warna = '#27ae60';
+        let kelas = 'normal';
+        if (link.persen > 90) {
+            warna = '#e74c3c';
+            kelas = 'critical';
+        } else if (link.persen > 75) {
+            warna = '#f39c12';
+            kelas = 'warning';
+        }
+        
+        html += `
+            <div style="display: flex; align-items: center; padding: 12px; margin: 8px 0; background: #f8fafc; border-radius: 6px; border-left: 4px solid ${warna};">
+                <div style="flex: 2; font-weight: 600;">${link.name}</div>
+                <div style="flex: 1; text-align: right; font-family: monospace;">${link.raw}</div>
+                <div style="flex: 0.5; text-align: right; font-weight: bold; color: ${warna}; margin-left: 15px;">${link.persen.toFixed(2)}%</div>
+                <div style="flex: 0.5; text-align: right; margin-left: 15px;">
+                    <a href="${link.url}" target="_blank" style="color: #2c5364; text-decoration: none; font-size: 12px; padding: 4px 8px; background: #e9ecef; border-radius: 4px;">🔗 Graph</a>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function updateTeraStats(allLinks, teraLinks) {
+    document.getElementById('totalLink').innerHTML = allLinks.length;
+    document.getElementById('totalTera').innerHTML = teraLinks.length;
+    document.getElementById('totalKritis').innerHTML = teraLinks.filter(l => l.persen > 90).length;
+    document.getElementById('totalWarning').innerHTML = teraLinks.filter(l => l.persen > 75 && l.persen <= 90).length;
+}
+
+function copyTeraReport() {
+    if (currentTeraLinks.length === 0) {
+        alert('Belum ada data. Silakan refresh terlebih dahulu.');
+        return;
+    }
+    
+    const sorted = [...currentTeraLinks].sort((a, b) => a.name.localeCompare(b.name));
+    const teraText = sorted.map(link => `${link.name} | ${link.persen.toFixed(2)}%`).join('\n');
+    
+    const fullReport = `I. UTILISASI
+Tera > 50% :
+${teraText}
+
+LB-CDN > 75% : -
+PE-WAG > 75% : -
+Uplink GPON to GPON >80% : -`;
+    
+    navigator.clipboard.writeText(fullReport).then(() => {
+        alert('✅ Laporan berhasil dicopy!');
+    }).catch(err => {
+        alert('Gagal copy: ' + err);
+    });
+}
+
+// Load data saat halaman dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('teraListContainer')) {
+        fetchTeraData();
+        setInterval(fetchTeraData, 120000); // Refresh setiap 2 menit
+    }
+});
 
 // ================= ESKALASI =================
 function cleanText(t) {
