@@ -22,6 +22,28 @@ window.CRA_RESULT = [];
 
 let currentData = []; // Data setelah filter + search
 
+// ================= FUNGSI KONVERSI DURASI =================
+// Fungsi konversi format HH:MM:SS ke "X Jam Y Menit"
+function formatDurasi(ttrEndToEnd) {
+    if (!ttrEndToEnd || ttrEndToEnd === '' || ttrEndToEnd === '00:00:00') return '-';
+    
+    const parts = ttrEndToEnd.split(':');
+    if (parts.length === 3) {
+        const jam = parseInt(parts[0]);
+        const menit = parseInt(parts[1]);
+        // Detik diabaikan sesuai permintaan
+        if (jam > 0 && menit > 0) {
+            return `${jam} Jam ${menit} Menit`;
+        } else if (jam > 0) {
+            return `${jam} Jam`;
+        } else if (menit > 0) {
+            return `${menit} Menit`;
+        }
+        return `${jam} Jam ${menit} Menit`;
+    }
+    return ttrEndToEnd;
+}
+
 async function loadWorkzones() {
   const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1zzLfkuctrLA3dvesis1ZJi1-eC8eIQy_h0OV8K5nI6f2dPcOc2g9NC5NUAgQer7i-iM6mqTE_KQv/pub?output=csv';
   try {
@@ -301,6 +323,9 @@ function renderData(data) {
     const summary = row["SUMMARY"] || "";
     const update = row["WORKLOG SUMMARY"] || "-";
     const zone = (row["WORKZONE"] || "").toUpperCase();
+    const ttr = row["TTR END TO END"] || "";
+    const durasiFormatted = formatDurasi(ttr);
+    
     total++; 
 
     if (summary.includes("(REPAIR) TRA T3") || summary.includes("(RECOVERY) TRA T3")) {
@@ -321,10 +346,10 @@ function renderData(data) {
     card.className = "card";
 
     if (DB_JATIM.has(zone)) {
-      card.innerHTML = `<b>${noJ++}. ${row["INCIDENT"] || '-'}</b><br>${summary}<br><b>Update :</b> ${update}`;
+      card.innerHTML = `<b>${noJ++}. ${row["INCIDENT"] || '-'}</b><br>${summary}<br><b>Update :</b> ${update}<br><b>⏱️ Durasi :</b> ${durasiFormatted}`;
       jatimBox.appendChild(card);
     } else if (DB_BALNUS.has(zone)) {
-      card.innerHTML = `<b>${noB++}. ${row["INCIDENT"] || '-'}</b><br>${summary}<br><b>Update :</b> ${update}`;
+      card.innerHTML = `<b>${noB++}. ${row["INCIDENT"] || '-'}</b><br>${summary}<br><b>Update :</b> ${update}<br><b>⏱️ Durasi :</b> ${durasiFormatted}`;
       balnusBox.appendChild(card);
     }
   });
@@ -869,327 +894,6 @@ function clearInput() {
     document.getElementById('statusIndicator').innerHTML = '⏳ Menunggu input...';
 }
 
-// ========== MONITOR TERA > 50% ==========
-// ========== MONITOR TERA > 50% REAL-TIME MURNI ==========
-const graphLinks = [
-    { id: 154354, name: "KBL - JT2 BE5", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=154354", kapasitas: 2300 },
-    { id: 138038, name: "KBL - BTC BE15", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=138038", kapasitas: 2800 },
-    { id: 142320, name: "KBL - KD BE31", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=142320", kapasitas: 1000 },
-    { id: 107472, name: "KBL - GBL BE20", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=107472", kapasitas: 800 },
-    { id: 142325, name: "KBL - PS BE45", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=142325", kapasitas: 800 },
-    { id: 145513, name: "KBL - RKT BE9", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=145513", kapasitas: 3100 },
-    { id: 42605, name: "KBL - GIN BE16", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=42605", kapasitas: 140 },
-    { id: 139806, name: "KBL - SGR BE4", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=139806", kapasitas: 1000 },
-    { id: 142194, name: "KBL - MMR BE22", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=142194", kapasitas: 200 },
-    { id: 145666, name: "KBL - BIM BE23", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=145666", kapasitas: 300 },
-    { id: 146199, name: "RKT - JR BE45", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=146199", kapasitas: 900 },
-    { id: 145487, name: "RKT - ML BE40", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=145487", kapasitas: 1000 },
-    { id: 145511, name: "RKT - CKA BE15", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=145511", kapasitas: 1900 },
-    { id: 136992, name: "RKT - BDS BE17", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=136992", kapasitas: 2500 },
-    { id: 145477, name: "RKT - KPN BE20", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=145477", kapasitas: 300 },
-    { id: 145476, name: "RKT - MTR BE29", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=145476", kapasitas: 400 },
-    { id: 126916, name: "RKT - KLM BE16", url: "http://10.62.170.89/graph.php?rra_id=all&local_graph_id=126916", kapasitas: 900 }
-];
-
-let currentTeraLinks = [];
-let failedLinks = [];
-
-// Fungsi untuk parsing nilai MAXIMUM tertinggi
-function parseMaximumValues(html) {
-    try {
-        // Cari Inbound Maximum
-        const inboundRegex = /Inbound\s+.*?Maximum:?\s*([0-9,.]+)\s*([TG])/i;
-        // Cari Outbound Maximum  
-        const outboundRegex = /Outbound\s+.*?Maximum:?\s*([0-9,.]+)\s*([TG])/i;
-        
-        let maxValue = 0;
-        let maxRaw = "";
-        let source = "";
-        
-        // Cek Inbound
-        const inboundMatch = html.match(inboundRegex);
-        if (inboundMatch) {
-            let value = parseFloat(inboundMatch[1].replace(',', '.'));
-            const unit = inboundMatch[2].toUpperCase();
-            const valueInG = unit === 'T' ? value * 1000 : value;
-            
-            maxValue = valueInG;
-            maxRaw = unit === 'T' ? `${value.toFixed(2)} T` : `${Math.round(value)} G`;
-            source = "Inbound";
-        }
-        
-        // Cek Outbound dan bandingkan
-        const outboundMatch = html.match(outboundRegex);
-        if (outboundMatch) {
-            let value = parseFloat(outboundMatch[1].replace(',', '.'));
-            const unit = outboundMatch[2].toUpperCase();
-            const valueInG = unit === 'T' ? value * 1000 : value;
-            
-            if (valueInG > maxValue) {
-                maxValue = valueInG;
-                maxRaw = unit === 'T' ? `${value.toFixed(2)} T` : `${Math.round(value)} G`;
-                source = "Outbound";
-            }
-        }
-        
-        if (maxValue > 0) {
-            return { raw: maxRaw, value: maxValue, source };
-        }
-        
-        return null;
-    } catch (e) {
-        console.error('Parse error:', e);
-        return null;
-    }
-}
-
-// Fungsi fetch dengan timeout
-async function fetchWithTimeout(url, timeout = 5000) {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
-    
-    try {
-        const response = await fetch(url, {
-            signal: controller.signal,
-            cache: 'no-cache',
-            headers: {
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
-            }
-        });
-        clearTimeout(id);
-        return response;
-    } catch (error) {
-        clearTimeout(id);
-        throw error;
-    }
-}
-
-// Fungsi fetch data REAL-TIME (NO BACKUP!)
-async function fetchTeraData() {
-    const refreshBtn = document.getElementById('refreshTeraBtn');
-    const refreshIcon = document.getElementById('refreshIcon');
-    const container = document.getElementById('teraListContainer');
-    const updateStatus = document.getElementById('updateStatus');
-    
-    // Reset failed links
-    failedLinks = [];
-    
-    if (refreshBtn) {
-        refreshBtn.disabled = true;
-        refreshIcon.innerHTML = '⏳';
-        refreshIcon.classList.add('spinning');
-    }
-    
-    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #a0aec0;"><span style="font-size: 24px;">⏳</span><br>Mengambil data REAL-TIME dari graph...</div>';
-    
-    try {
-        const results = [];
-        let successCount = 0;
-        
-        // Fetch satu per satu (bukan parallel) untuk menghindari overload
-        for (const link of graphLinks) {
-            try {
-                // Update status
-                updateStatus.innerHTML = `⏳ Mengambil data ${link.name}...`;
-                
-                const response = await fetchWithTimeout(link.url);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                
-                const html = await response.text();
-                
-                // Validasi HTML
-                if (!html || html.length < 100 || html.includes('error') || html.includes('Error')) {
-                    throw new Error('Invalid response');
-                }
-                
-                const parsed = parseMaximumValues(html);
-                
-                if (parsed) {
-                    successCount++;
-                    const persen = (parsed.value / link.kapasitas) * 100;
-                    
-                    results.push({ 
-                        ...link, 
-                        ...parsed, 
-                        persen
-                    });
-                    
-                    console.log(`✅ ${link.name}: ${parsed.raw} (${parsed.source}) = ${persen.toFixed(2)}%`);
-                } else {
-                    // Gagal parse = data tidak ditemukan
-                    failedLinks.push(link.name);
-                    console.error(`❌ ${link.name}: Data maximum tidak ditemukan di HTML`);
-                }
-                
-            } catch (error) {
-                // Catat link yang gagal
-                failedLinks.push(link.name);
-                console.error(`❌ ${link.name}: ${error.message}`);
-            }
-            
-            // Beri jeda antar request (500ms)
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
-        
-        // Filter yang > 50%
-        currentTeraLinks = results.filter(r => r.persen > 50);
-        
-        // Urutkan dari persentase tertinggi
-        currentTeraLinks.sort((a, b) => b.persen - a.persen);
-        
-        // Update tampilan
-        displayTeraResultsModern(currentTeraLinks);
-        updateTeraStats(results, currentTeraLinks);
-        
-        const now = new Date().toLocaleString('id-ID');
-        
-        // Buat status message
-        let statusMessage = `🕐 ${now} | ✅ ${successCount} sukses`;
-        if (failedLinks.length > 0) {
-            statusMessage += ` | ❌ ${failedLinks.length} gagal: ${failedLinks.join(', ')}`;
-        }
-        
-        updateStatus.innerHTML = statusMessage;
-        
-        // Jika ada yang gagal, tampilkan warning
-        if (failedLinks.length > 0) {
-            container.innerHTML += `
-                <div style="margin-top: 10px; padding: 10px; background: #fff3cd; color: #856404; border-radius: 6px; font-size: 12px;">
-                    ⚠️ ${failedLinks.length} link gagal diambil: ${failedLinks.join(', ')}
-                </div>
-            `;
-        }
-        
-    } catch (error) {
-        console.error('Fatal error:', error);
-        container.innerHTML = `<div style="color: #e53e3e; text-align: center; padding: 40px;">
-            ❌ Gagal total: ${error.message}
-        </div>`;
-        updateStatus.innerHTML = '❌ Gagal mengambil data';
-        
-    } finally {
-        if (refreshBtn) {
-            refreshBtn.disabled = false;
-            refreshIcon.innerHTML = '🔄';
-            refreshIcon.classList.remove('spinning');
-        }
-    }
-}
-
-function displayTeraResultsModern(links) {
-    const container = document.getElementById('teraListContainer');
-    
-    if (links.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #a0aec0;">📭 Tidak ada link dengan utilisasi > 50%</div>';
-        return;
-    }
-    
-    let html = '';
-    links.forEach(link => {
-        let statusClass = 'status-normal';
-        let borderClass = 'border-normal';
-        let warna = '#38a169';
-        
-        if (link.persen > 90) {
-            statusClass = 'status-critical';
-            borderClass = 'border-critical';
-            warna = '#e53e3e';
-        } else if (link.persen > 75) {
-            statusClass = 'status-warning';
-            borderClass = 'border-warning';
-            warna = '#dd6b20';
-        }
-        
-        // Icon berdasarkan sumber
-        const sourceIcon = link.source === 'Inbound' ? '📥' : '📤';
-        
-        html += `
-            <div class="link-item-modern ${borderClass}" title="Maximum dari ${link.source}">
-                <div class="link-name-modern">
-                    ${sourceIcon} ${link.name}
-                </div>
-                <div class="link-value-modern">${link.raw}</div>
-                <div class="link-persen-modern ${statusClass}">${link.persen.toFixed(2)}%</div>
-                <div class="link-graph-modern">
-                    <a href="${link.url}" target="_blank" title="Buka Graph">🔗 Graph</a>
-                </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
-}
-
-function updateTeraStats(allLinks, teraLinks) {
-    const totalLinkEl = document.getElementById('totalLink');
-    const totalTeraEl = document.getElementById('totalTera');
-    const totalKritisEl = document.getElementById('totalKritis');
-    const totalWarningEl = document.getElementById('totalWarning');
-    
-    if (totalLinkEl) totalLinkEl.innerHTML = allLinks.length;
-    if (totalTeraEl) totalTeraEl.innerHTML = teraLinks.length;
-    if (totalKritisEl) totalKritisEl.innerHTML = teraLinks.filter(l => l.persen > 90).length;
-    if (totalWarningEl) totalWarningEl.innerHTML = teraLinks.filter(l => l.persen > 75 && l.persen <= 90).length;
-}
-
-function copyTeraReport() {
-    if (currentTeraLinks.length === 0) {
-        alert('❌ Belum ada data real-time. Silakan refresh terlebih dahulu.');
-        return;
-    }
-    
-    const sorted = [...currentTeraLinks].sort((a, b) => a.name.localeCompare(b.name));
-    const teraText = sorted.map(link => `${link.name} | ${link.persen.toFixed(2)}%`).join('\n');
-    
-    const fullReport = `I. UTILISASI
-Tera > 50% :
-${teraText}
-
-LB-CDN > 75% : -
-PE-WAG > 75% : -
-Uplink GPON to GPON >80% : -`;
-    
-    navigator.clipboard.writeText(fullReport).then(() => {
-        // Notifikasi sukses
-        const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #48bb78;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 9999;
-            animation: slideIn 0.3s ease;
-        `;
-        notification.textContent = '✅ Laporan REAL-TIME berhasil dicopy!';
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
-    }).catch(err => {
-        alert('Gagal copy: ' + err);
-    });
-}
-
-// Auto refresh setiap 5 menit (300000 ms)
-document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('teraListContainer')) {
-        fetchTeraData();
-        setInterval(fetchTeraData, 300000);
-    }
-});
-
-// Export ke global
-window.fetchTeraData = fetchTeraData;
-window.copyTeraReport = copyTeraReport;
 
 // ================= ESKALASI =================
 function cleanText(t) {
