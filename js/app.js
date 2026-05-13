@@ -119,6 +119,41 @@ function detectODP(data) {
     });
 }
 
+// ================= UPDATE STATISTIK REGION =================
+function updateRegionStats(data) {
+    let jatimCount = 0;
+    let balnusCount = 0;
+    let reg4Count = 0;
+    
+    data.forEach(row => {
+        const summary = row["SUMMARY"] || "";
+        const zone = (row["WORKZONE"] || "").toUpperCase();
+        
+        // Prioritas REG 4 dari SUMMARY
+        if (summary.includes("GAMAS R4") || summary.toUpperCase().includes("GAMAS R4")) {
+            reg4Count++;
+        }
+        // Cek REG 4 dari WORKZONE
+        else if (DB_REG4.has(zone)) {
+            reg4Count++;
+        }
+        // Cek JATIM
+        else if (DB_JATIM.has(zone)) {
+            jatimCount++;
+        }
+        // Cek BALNUS
+        else if (DB_BALNUS.has(zone)) {
+            balnusCount++;
+        }
+    });
+    
+    document.getElementById("statJatim").textContent = jatimCount;
+    document.getElementById("statBalnus").textContent = balnusCount;
+    document.getElementById("statReg4").textContent = reg4Count;
+    
+    console.log(`📊 STATS - JATIM: ${jatimCount}, BALNUS: ${balnusCount}, REG4: ${reg4Count}`);
+}
+
 // ================= FORMAT TIKET UNTUK EXECUTIVE REPORT =================
 function formatExecutiveTiket(row, index, type) {
     const incident = row["INCIDENT"] || "-";
@@ -428,11 +463,8 @@ function generateExecutiveReport(shift) {
             idx++;
         }
         
-        // HANYA TAMPILKAN UNMAPPED JIKA TOTALNYA > 0
         let dUnmapped = resume["UNMAPPED"];
-        if (dUnmapped.total > 0) {
-            craResumeText += `${idx}. District UNMAPPED : [ ${dUnmapped.total} | ${dUnmapped.on} | ${dUnmapped.belum} | ${dUnmapped.cancel} ]\n`;
-        }
+        craResumeText += `${idx}. District UNMAPPED : [ ${dUnmapped.total} | ${dUnmapped.on} | ${dUnmapped.belum} | ${dUnmapped.cancel} ]\n`;
         
         let totalAll = 0, totalOn = 0, totalBelum = 0, totalCancel = 0;
         for (let key in resume) {
@@ -855,6 +887,9 @@ function renderData(data) {
     document.getElementById("distriCount").textContent = `DISTRIBUSI : ${d}`;
 
     renderStatusBadges(data);
+	
+	//JUMLAH GAMAS
+	updateRegionStats(data);
     
     if (!jatimBox.children.length) jatimBox.innerHTML = `<div class="empty">Data tidak ditemukan</div>`;
     if (!balnusBox.children.length) balnusBox.innerHTML = `<div class="empty">Data tidak ditemukan</div>`;
