@@ -428,8 +428,11 @@ function generateExecutiveReport(shift) {
             idx++;
         }
         
+        // HANYA TAMPILKAN UNMAPPED JIKA TOTALNYA > 0
         let dUnmapped = resume["UNMAPPED"];
-        craResumeText += `${idx}. District UNMAPPED : [ ${dUnmapped.total} | ${dUnmapped.on} | ${dUnmapped.belum} | ${dUnmapped.cancel} ]\n`;
+        if (dUnmapped.total > 0) {
+            craResumeText += `${idx}. District UNMAPPED : [ ${dUnmapped.total} | ${dUnmapped.on} | ${dUnmapped.belum} | ${dUnmapped.cancel} ]\n`;
+        }
         
         let totalAll = 0, totalOn = 0, totalBelum = 0, totalCancel = 0;
         for (let key in resume) {
