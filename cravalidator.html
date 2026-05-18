@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRA Gap Analyzer | Telkom Regional 4 & 5</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            padding: 32px 24px;
+            color: #1a2c3e;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            margin-bottom: 28px;
+        }
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0a3e5c, #1a6e8f);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .subhead {
+            color: #5b7f95;
+            margin-top: 8px;
+            font-size: 0.9rem;
+            border-left: 3px solid #2c7da0;
+            padding-left: 16px;
+        }
+        
+        .upload-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            background: white;
+            padding: 24px 28px;
+            border-radius: 24px;
+            margin-bottom: 28px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #e4e9f0;
+        }
+        .upload-card {
+            flex: 1;
+            min-width: 260px;
+        }
+        .upload-card label {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            color: #1f5a7a;
+            font-size: 0.9rem;
+        }
+        .upload-card input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            background: #fafcff;
+            transition: all 0.2s;
+        }
+        .upload-card input:hover {
+            border-color: #2c7da0;
+        }
+        .upload-card input:focus {
+            outline: none;
+            border-color: #2c7da0;
+            box-shadow: 0 0 0 3px rgba(44,125,160,0.1);
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+            align-self: flex-end;
+        }
+        .btn-compare {
+            background: linear-gradient(135deg, #1f6e94, #0e4d6b);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .btn-compare:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(31,110,148,0.25);
+        }
+        .btn-refresh {
+            background: #eef2f7;
+            border: 1.5px solid #e2e8f0;
+            color: #1f5a7a;
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .btn-refresh:hover {
+            background: #e2e8f0;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 6px;
+            border-radius: 60px;
+            width: fit-content;
+            border: 1px solid #e9edf2;
+        }
+        .tab-btn {
+            padding: 10px 24px;
+            border-radius: 40px;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            color: #5b7f95;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #1f6e94, #0e4d6b);
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 16px 24px;
+            flex: 1;
+            min-width: 160px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #e9edf2;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+        }
+        .stat-card .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #7c8f9f;
+        }
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+        .stat-card.priority .value { color: #e67e22; }
+        .stat-card.warning .value { color: #e74c3c; }
+        .stat-card.info .value { color: #2c7da0; }
+        .stat-card.success .value { color: #27ae60; }
+        .stat-card.only-surv .value { color: #8e44ad; }
+        
+        .legend {
+            background: white;
+            padding: 12px 20px;
+            border-radius: 60px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 24px;
+            font-size: 0.7rem;
+            border: 1px solid #e9edf2;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-missing { background: #fff0cc; color: #b16f0a; }
+        .badge-ok { background: #c8f0d6; color: #0a5c2e; }
+        .badge-cancel { background: #ffe0db; color: #c0392b; }
+        .badge-ref { background: #e8edf5; color: #3a5a7a; }
+        .badge-notfound { background: #f0eef9; color: #5b4c8c; }
+        .badge-onlysurv { background: #e8daf5; color: #6c3483; }
+        .gap-type {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 30px;
+        }
+        .type-a { background: #fff0cc; color: #b16f0a; }
+        .type-b { background: #ffe0db; color: #c0392b; }
+        .type-c { background: #e8edf5; color: #3a5a7a; }
+        .type-sync { background: #c8f0d6; color: #0a5c2e; }
+        .type-onlysurv { background: #e8daf5; color: #6c3483; }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            transform: scale(1.02);
+        }
+        .btn-fix-a {
+            background: #fff0cc;
+            color: #b16f0a;
+        }
+        .btn-fix-a:hover {
+            background: #ffe4a3;
+        }
+        .btn-fix-b {
+            background: #ffe0db;
+            color: #c0392b;
+        }
+        .btn-fix-b:hover {
+            background: #ffc8c0;
+        }
+        
+        .table-wrapper {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e9edf2;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .table-header {
+            padding: 16px 20px;
+            background: #f8fafd;
+            border-bottom: 1px solid #e9edf2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .table-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1a4e6e;
+        }
+        .export-btn {
+            background: #eef2f7;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .export-btn:hover {
+            background: #e2e8f0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+        th {
+            background: #f8fafd;
+            padding: 14px 10px;
+            text-align: left;
+            font-weight: 700;
+            color: #2c5a7a;
+            border-bottom: 1px solid #e9edf2;
+        }
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f0f2f5;
+            vertical-align: middle;
+        }
+        tr:hover td {
+            background: #fafcff;
+        }
+        .reg-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.65rem;
+        }
+        .reg-5 { background: #c8f0d6; color: #0a5c2e; }
+        .reg-4 { background: #ffe8cc; color: #b16f0a; }
+        
+        .summary-card {
+            margin-top: 24px;
+            padding: 18px 24px;
+            border-radius: 20px;
+            background: #fef8e7;
+            border-left: 6px solid #f4a261;
+        }
+        .summary-card.warning { background: #ffe8e6; border-left-color: #e74c3c; }
+        .summary-card.success { background: #dff0e4; border-left-color: #27ae60; }
+        .summary-card.purple { background: #f3e8ff; border-left-color: #8e44ad; }
+        
+        .footer {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 0.7rem;
+            color: #8ba0b0;
+        }
+        .text-truncate {
+            max-width: 220px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .success-badge {
+            background: #c8f0d6;
+            color: #0a5c2e;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+    </style>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📊 CRA Gap Analyzer</h1>
+        <div class="subhead">Regional 4 & 5 · Perbandingan Status CRA REPORT DSO vs CRA SURVEILLANCE</div>
+    </div>
+
+    <div class="upload-grid">
+        <div class="upload-card">
+            <label>📁 CRA REPORT DSO</label>
+            <input type="file" id="fileMaster" accept=".xlsx, .xls">
+        </div>
+        <div class="upload-card">
+            <label>📁 CRA SURVEILLANCE</label>
+            <input type="file" id="fileRef" accept=".xlsx, .xls">
+        </div>
+        <div class="btn-group">
+            <button class="btn-refresh" id="btnRefresh">🔄 Refresh / Upload Baru</button>
+            <button class="btn-compare" id="btnCompare">🚀 Bandingkan & Analisis</button>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs" id="tabContainer" style="display: none;">
+        <button class="tab-btn active" data-tab="gap1">📋 Gap DSO vs Surveillance</button>
+        <button class="tab-btn" data-tab="gap2">⚠️ CRA Hanya di Surveillance (Tidak ada di DSO)</button>
+    </div>
+
+    <div class="stats-grid" id="statsGrid" style="display: none;"></div>
+
+    <div class="legend">
+        <span><span class="badge badge-missing">⚠️ KOSONG</span></span>
+        <span><span class="badge badge-ok">✅ ON SCHEDULE</span></span>
+        <span><span class="badge badge-cancel">❌ CANCEL</span></span>
+        <span><span class="badge badge-ref">⌛️ BELUM DIISI</span></span>
+        <span><span class="badge badge-notfound">🔍 TIDAK DITEMUKAN</span></span>
+        <span><span class="badge badge-onlysurv">📌 HANYA DI SURVEILLANCE</span></span>
+        <span><span class="gap-type type-a">🔴 Tipe A: Report DSO kosong, Surveillance ADA</span></span>
+        <span><span class="gap-type type-b">🟠 Tipe B: Report DSO ADA, Surveillance kosong</span></span>
+        <span><span class="gap-type type-c">🟡 Tipe C: Keduanya kosong</span></span>
+        <span><span class="gap-type type-onlysurv">🟣 Hanya di Surveillance (tidak di DSO Report)</span></span>
+    </div>
+
+    <div class="table-wrapper">
+        <div class="table-header">
+            <h3 id="tableTitle">📋 Daftar CRA Regional 4 & 5</h3>
+            <button class="export-btn" id="exportBtn" style="display: none;">📎 Export ke XLS</button>
+        </div>
+        <table id="resultTable">
+            <thead id="tableHead">
+                <tr>
+                    <th>#</th>
+                    <th>No CRA</th>
+                    <th>REGIONAL</th>
+                    <th>PENANGGUNG JAWAB</th>
+                    <th>STATUS Report DSO</th>
+                    <th>STATUS Surveillance</th>
+                    <th>Judul</th>
+                    <th>Status Gap</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="resultBody">
+                <tr><td colspan="9" style="text-align:center; padding:60px;">⬆️ Upload kedua file Excel lalu klik Bandingkan ⬆️</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="summaryCard" class="summary-card" style="display: none;"></div>
+    <div class="footer">
+        💡 Klik tombol aksi untuk memperbaiki status secara otomatis:<br>
+        • <strong>Tipe A</strong> → Isi Report DSO dari Surveillance<br>
+        • <strong>Tipe B</strong> → Isi Surveillance dari Report DSO
+    </div>
+</div>
+
+<script>
+    let currentResults = [];        // untuk tab Gap1 (DSO vs Surveillance)
+    let onlySurvResults = [];       // untuk tab Gap2 (CRA hanya di Surveillance)
+    let currentRefMap = new Map();
+    let currentRefData = [];        // menyimpan data raw Surveillance
+    let currentTab = 'gap1';
+    
+    async function readExcelRaw(file, sheetName) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array', defval: "" });
+                let sheet = workbook.Sheets[sheetName];
+                if (!sheet) {
+                    const foundName = workbook.SheetNames.find(n => n.toLowerCase() === sheetName.toLowerCase());
+                    if (foundName) sheet = workbook.Sheets[foundName];
+                }
+                if (!sheet && workbook.SheetNames.length) sheet = workbook.Sheets[workbook.SheetNames[0]];
+                if (!sheet) reject(new Error(`Sheet tidak ditemukan`));
+                resolve(XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" }));
+            };
+            reader.onerror = () => reject(new Error("Gagal membaca file"));
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    function extractCRANumber(raw) {
+        if (!raw || typeof raw !== 'string') return null;
+        const match = raw.match(/CRA\.\d+/i);
+        return match ? match[0] : null;
+    }
+
+    function isValidCRA(str) {
+        if (!str || typeof str !== 'string') return false;
+        return str.trim().toUpperCase().startsWith('CRA.');
+    }
+
+    function normalizeStatusRef(raw) {
+        if (!raw || raw === "") return "BELUM DIISI";
+        const s = raw.toString().trim();
+        if (s.includes("ON SCHEDULE") || s.includes("✅")) return "ON SCHEDULE";
+        if (s.includes("CANCEL") || s.includes("❌")) return "CANCEL";
+        if (s.includes("BELUM DIISI") || s.includes("⌛️")) return "BELUM DIISI";
+        return s;
+    }
+
+    function normalizeStatusMaster(raw) {
+        if (!raw || raw === "") return "KOSONG";
+        const s = raw.toString().trim();
+        if (s.includes("ON SCHEDULE") || s.includes("📅")) return "ON SCHEDULE";
+        if (s.includes("CANCEL") || s.includes("❌")) return "CANCEL";
+        return s;
+    }
+
+    async function buildRefData(fileRef) {
+        const rows = await readExcelRaw(fileRef, "CRA Reg 5");
+        if (!rows || rows.length < 2) throw new Error("File CRA SURVEILLANCE kosong");
+        
+        let headerIdx = -1;
+        for (let i = 0; i < Math.min(rows.length, 10); i++) {
+            const row = rows[i];
+            if (!row) continue;
+            if (row.join(" ").toUpperCase().includes("NO_CRA")) { headerIdx = i; break; }
+        }
+        if (headerIdx === -1) headerIdx = 0;
+        
+        const header = rows[headerIdx];
+        let colNoCra = -1, colStatus = -1, colRegional = -1, colPic = -1, colJudul = -1;
+        for (let i = 0; i < header.length; i++) {
+            const cell = (header[i] || "").toString().toUpperCase();
+            if (cell.includes("NO_CRA") || cell === "NO CRA") colNoCra = i;
+            if (cell === "STATUS" || cell.includes("STATUS")) colStatus = i;
+            if (cell.includes("REGIONAL")) colRegional = i;
+            if (cell.includes("PIC") || cell.includes("PENANGGUNG")) colPic = i;
+            if (cell.includes("JUDUL")) colJudul = i;
+        }
+        if (colNoCra === -1 && header.length > 2) colNoCra = 2;
+        if (colStatus === -1 && header.length > 1) colStatus = 1;
+        
+        const map = new Map();
+        const dataList = [];
+        for (let i = headerIdx + 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row || row.length === 0) continue;
+            let raw = (colNoCra >= 0 && row[colNoCra]) ? String(row[colNoCra]).trim() : "";
+            let cra = extractCRANumber(raw);
+            if (!cra) continue;
+            let statusRaw = (colStatus >= 0 && row[colStatus]) ? String(row[colStatus]).trim() : "";
+            let regional = (colRegional >= 0 && row[colRegional]) ? String(row[colRegional]).trim() : "";
+            let pic = (colPic >= 0 && row[colPic]) ? String(row[colPic]).trim() : "-";
+            let judul = (colJudul >= 0 && row[colJudul]) ? String(row[colJudul]).trim() : "";
+            let normalizedStatus = normalizeStatusRef(statusRaw);
+            map.set(cra, normalizedStatus);
+            dataList.push({
+                craNum: cra,
+                regional: regional,
+                penanggungJawab: pic,
+                statusRef: normalizedStatus,
+                statusRefRaw: statusRaw,
+                judul: judul
+            });
+        }
+        currentRefData = dataList;
+        return map;
+    }
+
+    async function processMaster(fileMaster, refMap) {
+        const rows = await readExcelRaw(fileMaster, "Todays Report");
+        if (!rows || rows.length < 4) throw new Error("Sheet Todays Report kosong");
+        
+        let headerIdx = -1;
+        for (let i = 0; i < Math.min(rows.length, 10); i++) {
+            const row = rows[i];
+            if (!row || row.length < 2) continue;
+            if ((row[1] || "").toString().toUpperCase().includes("NO CRA")) {
+                headerIdx = i;
+                break;
+            }
+        }
+        if (headerIdx === -1) throw new Error("Header 'No CRA' tidak ditemukan");
+        
+        const COL_NO_URUT = 0, COL_NO_CRA = 1, COL_JUDUL = 2, COL_REGIONAL = 4, COL_PIC = 6, COL_STATUS = 19;
+        const results = [];
+        
+        for (let i = headerIdx + 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row || row.length === 0) continue;
+            let craRaw = (row[COL_NO_CRA] !== undefined && row[COL_NO_CRA] !== null) ? String(row[COL_NO_CRA]).trim() : "";
+            if (!isValidCRA(craRaw)) continue;
+            
+            let regional = (row[COL_REGIONAL] !== undefined && row[COL_REGIONAL] !== null) ? String(row[COL_REGIONAL]).trim() : "";
+            let isReg5 = /reg\s*5/i.test(regional);
+            let isReg4 = /reg\s*4/i.test(regional);
+            if (!isReg5 && !isReg4) continue;
+            
+            let noUrut = (row[COL_NO_URUT] !== undefined && row[COL_NO_URUT] !== null) ? String(row[COL_NO_URUT]).trim() : (i+1).toString();
+            let penanggungJawab = (row[COL_PIC] !== undefined && row[COL_PIC] !== null) ? String(row[COL_PIC]).trim() : "-";
+            let statusMasterRaw = (row[COL_STATUS] !== undefined && row[COL_STATUS] !== null) ? String(row[COL_STATUS]).trim() : "";
+            let isEmptyMaster = (statusMasterRaw === "");
+            let statusMasterNorm = normalizeStatusMaster(statusMasterRaw);
+            let judul = (row[COL_JUDUL] !== undefined && row[COL_JUDUL] !== null) ? String(row[COL_JUDUL]).trim() : "";
+            let craNum = extractCRANumber(craRaw);
+            
+            let statusRef = refMap.get(craNum) || "TIDAK DITEMUKAN";
+            
+            let gapType = "", rekomendasi = "";
+            if (isEmptyMaster && (statusRef === "ON SCHEDULE" || statusRef === "CANCEL")) {
+                gapType = "Tipe A";
+                rekomendasi = `Isi Report DSO dengan nilai "${statusRef}" dari Surveillance`;
+            } else if (!isEmptyMaster && statusRef === "BELUM DIISI") {
+                gapType = "Tipe B";
+                rekomendasi = `Isi Surveillance dengan nilai "${statusMasterNorm}" dari Report DSO`;
+            } else if (isEmptyMaster && (statusRef === "BELUM DIISI" || statusRef === "TIDAK DITEMUKAN")) {
+                gapType = "Tipe C";
+                rekomendasi = `Investigasi bersama`;
+            } else if (!isEmptyMaster && (statusRef === "ON SCHEDULE" || statusRef === "CANCEL")) {
+                gapType = "SINKRON";
+                rekomendasi = `Sudah sesuai`;
+            } else {
+                gapType = "LAINNYA";
+                rekomendasi = `Periksa manual`;
+            }
+            
+            results.push({
+                noUrut, craNum: craNum || craRaw, regional, penanggungJawab,
+                statusMaster: statusMasterRaw || "(KOSONG)", isEmptyMaster,
+                statusMasterNorm: statusMasterNorm !== "KOSONG" ? statusMasterNorm : null,
+                statusRef: statusRef, statusRefValue: statusRef,
+                judul: judul.substring(0, 60),
+                gapType, rekomendasi,
+                sortPriority: isEmptyMaster ? 1 : (statusRef === "BELUM DIISI" ? 2 : 3)
+            });
+        }
+        results.sort((a,b) => a.sortPriority - b.sortPriority);
+        return results;
+    }
+    
+    function findOnlySurveillance() {
+        const masterCraSet = new Set(currentResults.map(r => r.craNum));
+        const onlySurv = currentRefData.filter(ref => !masterCraSet.has(ref.craNum));
+        return onlySurv.filter(ref => {
+            let regional = ref.regional || "";
+            return /reg\s*4/i.test(regional) || /reg\s*5/i.test(regional);
+        }).map((ref, idx) => ({
+            no: idx + 1,
+            craNum: ref.craNum,
+            regional: ref.regional || "REG ?",
+            penanggungJawab: ref.penanggungJawab,
+            statusMaster: "(TIDAK ADA DI DSO REPORT)",
+            statusRef: ref.statusRef,
+            judul: ref.judul,
+            gapType: "HANYA DI SURVEILLANCE",
+            rekomendasi: "CRA ini ada di Surveillance tetapi tidak ditemukan di DSO Report. Perlu ditambahkan ke DSO Report."
+        }));
+    }
+    
+    function updateFixAction(craNum, target, newStatus) {
+        const idx = currentResults.findIndex(r => r.craNum === craNum);
+        if (idx !== -1) {
+            if (target === 'master') {
+                currentResults[idx].statusMaster = newStatus;
+                currentResults[idx].isEmptyMaster = false;
+                currentResults[idx].statusMasterNorm = newStatus;
+            } else if (target === 'ref') {
+                currentResults[idx].statusRef = newStatus;
+                currentResults[idx].statusRefValue = newStatus;
+            }
+            const row = currentResults[idx];
+            const isEmptyMaster = row.statusMaster === "(KOSONG)";
+            const statusRef = row.statusRef;
+            const statusMasterNorm = row.statusMasterNorm;
+            
+            if (!isEmptyMaster && (statusRef === "ON SCHEDULE" || statusRef === "CANCEL")) {
+                row.gapType = "SINKRON";
+                row.rekomendasi = "✅ Sudah sinkron setelah update";
+            } else if (!isEmptyMaster && statusRef === "BELUM DIISI") {
+                row.gapType = "Tipe B";
+                row.rekomendasi = `Isi Surveillance dengan nilai "${statusMasterNorm}" dari Report DSO`;
+            } else if (isEmptyMaster && (statusRef === "ON SCHEDULE" || statusRef === "CANCEL")) {
+                row.gapType = "Tipe A";
+                row.rekomendasi = `Isi Report DSO dengan nilai "${statusRef}" dari Surveillance`;
+            } else if (isEmptyMaster && (statusRef === "BELUM DIISI" || statusRef === "TIDAK DITEMUKAN")) {
+                row.gapType = "Tipe C";
+                row.rekomendasi = `Investigasi bersama`;
+            } else {
+                row.gapType = "SINKRON";
+                row.rekomendasi = "Sudah sesuai";
+            }
+            
+            if (row.gapType === "SINKRON") row.sortPriority = 3;
+            else if (row.gapType === "Tipe B") row.sortPriority = 2;
+            else if (row.gapType === "Tipe A") row.sortPriority = 1;
+        }
+        currentResults.sort((a,b) => a.sortPriority - b.sortPriority);
+        
+        // Recalculate onlySurvResults
+        onlySurvResults = findOnlySurveillance();
+        
+        if (currentTab === 'gap1') {
+            renderResults(currentResults);
+        } else {
+            renderOnlySurvResults(onlySurvResults);
+        }
+        renderStats();
+    }
+    
+    function renderStats() {
+        const statsGrid = document.getElementById('statsGrid');
+        const tipeA = currentResults.filter(r => r.gapType === "Tipe A");
+        const tipeB = currentResults.filter(r => r.gapType === "Tipe B");
+        const tipeC = currentResults.filter(r => r.gapType === "Tipe C");
+        const sync = currentResults.filter(r => r.gapType === "SINKRON");
+        const onlySurv = onlySurvResults.length;
+        
+        statsGrid.innerHTML = `
+            <div class="stat-card priority">
+                <div class="label">⚠️ Perlu UPDATE Report DSO (Tipe A)</div>
+                <div class="value">${tipeA.length}</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="label">🔄 Perlu Update Surveillance (Tipe B)</div>
+                <div class="value">${tipeB.length}</div>
+            </div>
+            <div class="stat-card info">
+                <div class="label">🔍 Investigasi (Tipe C)</div>
+                <div class="value">${tipeC.length}</div>
+            </div>
+            <div class="stat-card success">
+                <div class="label">✅ Sinkron</div>
+                <div class="value">${sync.length}</div>
+            </div>
+            <div class="stat-card only-surv">
+                <div class="label">⚠️ Hanya di Surveillance</div>
+                <div class="value">${onlySurv}</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">📋 Total CRA Reg 4/5 (DSO)</div>
+                <div class="value">${currentResults.length}</div>
+            </div>
+        `;
+        statsGrid.style.display = 'flex';
+    }
+    
+    function renderResults(results) {
+        const tbody = document.getElementById('resultBody');
+        const exportBtn = document.getElementById('exportBtn');
+        const tableTitle = document.getElementById('tableTitle');
+        const tableHead = document.getElementById('tableHead');
+        
+        tableTitle.innerHTML = "📋 Daftar CRA Regional 4 & 5 - Gap DSO vs Surveillance";
+        tableHead.innerHTML = `
+            <tr><th>#</th><th>No Urut</th><th>No CRA</th><th>REGIONAL</th><th>PENANGGUNG JAWAB</th><th>STATUS Report DSO</th><th>STATUS Surveillance</th><th>Judul</th><th>Status Gap</th><th>Aksi</th></tr>
+        `;
+        
+        if (!results.length) {
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">Tidak ada data REG 4/5 dengan No CRA valid</td></tr>`;
+            exportBtn.style.display = 'none';
+            return;
+        }
+        
+        exportBtn.style.display = 'inline-block';
+        
+        let html = '';
+        results.forEach((row, idx) => {
+            const regClass = row.regional.toLowerCase().includes("reg 5") ? "reg-5" : "reg-4";
+            
+            let status1Badge = (row.statusMaster === "(KOSONG)" || row.statusMaster === "")
+                ? '<span class="badge badge-missing">⚠️ KOSONG</span>'
+                : `<span class="badge badge-ok">${escapeHtml(row.statusMaster)}</span>`;
+            
+            let status2Badge = '';
+            if (row.statusRef === "ON SCHEDULE") status2Badge = '<span class="badge badge-ok">✅ ON SCHEDULE</span>';
+            else if (row.statusRef === "CANCEL") status2Badge = '<span class="badge badge-cancel">❌ CANCEL</span>';
+            else if (row.statusRef === "BELUM DIISI") status2Badge = '<span class="badge badge-ref">⌛️ BELUM DIISI</span>';
+            else status2Badge = '<span class="badge badge-notfound">🔍 TIDAK DITEMUKAN</span>';
+            
+            let gapBadge = '';
+            let actionButton = '';
+            
+            if (row.gapType === "Tipe A") {
+                gapBadge = '<span class="gap-type type-a">🔴 Tipe A</span>';
+                actionButton = `<button class="action-btn btn-fix-a" onclick="fixTipeA('${escapeHtml(row.craNum)}', '${escapeHtml(row.statusRef)}')">📝 Isi Report DSO</button>`;
+            } else if (row.gapType === "Tipe B") {
+                gapBadge = '<span class="gap-type type-b">🟠 Tipe B</span>';
+                actionButton = `<button class="action-btn btn-fix-b" onclick="fixTipeB('${escapeHtml(row.craNum)}', '${escapeHtml(row.statusMasterNorm)}')">📝 Isi Surveillance</button>`;
+            } else if (row.gapType === "Tipe C") {
+                gapBadge = '<span class="gap-type type-c">🟡 Tipe C</span>';
+                actionButton = `<span class="success-badge">🔍 Perlu Investigasi</span>`;
+            } else if (row.gapType === "SINKRON") {
+                gapBadge = '<span class="gap-type type-sync">✅ SINKRON</span>';
+                actionButton = `<span class="success-badge">✅ OK</span>`;
+            } else {
+                gapBadge = row.gapType;
+                actionButton = `-`;
+            }
+            
+            html += `<tr>
+                        <td>${idx+1}</td>
+                        <td>${escapeHtml(row.noUrut)}</td>
+                        <td><strong>${escapeHtml(row.craNum)}</strong></td>
+                        <td><span class="reg-badge ${regClass}">${escapeHtml(row.regional)}</span></td>
+                        <td class="text-truncate" title="${escapeHtml(row.penanggungJawab)}">${escapeHtml(row.penanggungJawab.substring(0, 45))}${row.penanggungJawab.length > 45 ? '…' : ''}</td>
+                        <td>${status1Badge}</td>
+                        <td>${status2Badge}</td>
+                        <td class="text-truncate" title="${escapeHtml(row.judul)}">${escapeHtml(row.judul.substring(0, 50))}${row.judul.length > 50 ? '…' : ''}</td>
+                        <td>${gapBadge}</td>
+                        <td>${actionButton}</td>
+                      </tr>`;
+        });
+        tbody.innerHTML = html;
+        
+        // Summary untuk gap1
+        const summaryDiv = document.getElementById('summaryCard');
+        const tipeA = results.filter(r => r.gapType === "Tipe A");
+        const tipeB = results.filter(r => r.gapType === "Tipe B");
+        const tipeC = results.filter(r => r.gapType === "Tipe C");
+        
+        if (tipeA.length > 0 || tipeB.length > 0) {
+            summaryDiv.className = "summary-card warning";
+            let summaryHtml = `<strong>⚠️ PRIORITAS TINDAKAN</strong><br>
+                               🔴 <strong>${tipeA.length} CRA Tipe A</strong> → Klik "Isi Report DSO" untuk mengisi dari Surveillance.<br>
+                               🟠 <strong>${tipeB.length} CRA Tipe B</strong> → Klik "Isi Surveillance" untuk mengisi dari Report DSO.<br>
+                               🟡 <strong>${tipeC.length} CRA Tipe C</strong> → Investigasi bersama.<br>`;
+            if (tipeA.length > 0) {
+                summaryHtml += `<br><strong>📋 Daftar Tipe A:</strong><br><span style="font-family:monospace; font-size:0.75rem;">${tipeA.map(r => r.craNum).join(', ')}</span>`;
+            }
+            summaryDiv.innerHTML = summaryHtml;
+        } else if (tipeC.length > 0) {
+            summaryDiv.className = "summary-card";
+            summaryDiv.innerHTML = `<strong>🟡 Ditemukan ${tipeC.length} CRA dengan status kosong di kedua file.</strong><br>Perlu koordinasi tim untuk menentukan status.`;
+        } else {
+            summaryDiv.className = "summary-card success";
+            summaryDiv.innerHTML = `<strong>✅ SEMUA CRA REG 4/5 SUDAH SINKRON!</strong>`;
+        }
+        summaryDiv.style.display = "block";
+    }
+    
+    function renderOnlySurvResults(results) {
+        const tbody = document.getElementById('resultBody');
+        const exportBtn = document.getElementById('exportBtn');
+        const tableTitle = document.getElementById('tableTitle');
+        const tableHead = document.getElementById('tableHead');
+        
+        tableTitle.innerHTML = "⚠️ Daftar CRA yang HANYA ada di SURVEILLANCE (tidak ditemukan di DSO Report)";
+        tableHead.innerHTML = `
+            <tr><th>#</th><th>No CRA</th><th>REGIONAL</th><th>PENANGGUNG JAWAB</th><th>STATUS Report DSO</th><th>STATUS Surveillance</th><th>Judul</th><th>Status Gap</th><th>Aksi</th></tr>
+        `;
+        
+        if (!results.length) {
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">✅ Tidak ada CRA yang hanya di Surveillance. Semua CRA Surveillance juga ada di DSO Report.</td></tr>`;
+            exportBtn.style.display = 'none';
+            return;
+        }
+        
+        exportBtn.style.display = 'inline-block';
+        
+        let html = '';
+        results.forEach((row, idx) => {
+            const regClass = row.regional.toLowerCase().includes("reg 5") ? "reg-5" : "reg-4";
+            
+            let status2Badge = '';
+            if (row.statusRef === "ON SCHEDULE") status2Badge = '<span class="badge badge-ok">✅ ON SCHEDULE</span>';
+            else if (row.statusRef === "CANCEL") status2Badge = '<span class="badge badge-cancel">❌ CANCEL</span>';
+            else if (row.statusRef === "BELUM DIISI") status2Badge = '<span class="badge badge-ref">⌛️ BELUM DIISI</span>';
+            else status2Badge = '<span class="badge badge-notfound">🔍 TIDAK DITEMUKAN</span>';
+            
+            html += `<tr>
+                        <td>${idx+1}</td>
+                        <td><strong>${escapeHtml(row.craNum)}</strong></td>
+                        <td><span class="reg-badge ${regClass}">${escapeHtml(row.regional)}</span></td>
+                        <td class="text-truncate" title="${escapeHtml(row.penanggungJawab)}">${escapeHtml(row.penanggungJawab.substring(0, 45))}</td>
+                        <td><span class="badge badge-missing">⚠️ TIDAK ADA DI DSO</span></td>
+                        <td>${status2Badge}</td>
+                        <td class="text-truncate" title="${escapeHtml(row.judul)}">${escapeHtml(row.judul.substring(0, 50))}</td>
+                        <td><span class="gap-type type-onlysurv">🟣 HANYA DI SURVEILLANCE</span></td>
+                        <td><button class="action-btn btn-fix-a" onclick="alert('CRA ${escapeHtml(row.craNum)} perlu ditambahkan ke DSO Report')">➕ Tambah ke DSO</button></td>
+                      </tr>`;
+        });
+        tbody.innerHTML = html;
+        
+        const summaryDiv = document.getElementById('summaryCard');
+        summaryDiv.className = "summary-card purple";
+        summaryDiv.innerHTML = `<strong>🟣 Ditemukan ${results.length} CRA yang hanya ada di file Surveillance (tidak ada di DSO Report)</strong><br>
+                                📋 Daftar: ${results.map(r => r.craNum).join(', ')}<br>
+                                💡 Rekomendasi: Tambahkan CRA-CRA ini ke dalam DSO Report.`;
+        summaryDiv.style.display = "block";
+    }
+    
+    window.fixTipeA = function(craNum, newStatus) {
+        if (confirm(`Isi Report DSO untuk CRA ${craNum} dengan nilai "${newStatus}"?`)) {
+            updateFixAction(craNum, 'master', newStatus);
+        }
+    };
+    
+    window.fixTipeB = function(craNum, newStatus) {
+        if (confirm(`Isi Surveillance untuk CRA ${craNum} dengan nilai "${newStatus}"?`)) {
+            updateFixAction(craNum, 'ref', newStatus);
+        }
+    };
+    
+    function exportToXLS() {
+        let exportData = [];
+        if (currentTab === 'gap1') {
+            exportData = currentResults.map((row, idx) => ({
+                "No": idx + 1,
+                "No Urut": row.noUrut,
+                "No CRA": row.craNum,
+                "REGIONAL": row.regional,
+                "PENANGGUNG JAWAB": row.penanggungJawab,
+                "STATUS Report DSO": row.statusMaster,
+                "STATUS Surveillance": row.statusRef,
+                "Judul": row.judul,
+                "Status Gap": row.gapType,
+                "Rekomendasi": row.rekomendasi
+            }));
+        } else {
+            exportData = onlySurvResults.map((row, idx) => ({
+                "No": idx + 1,
+                "No CRA": row.craNum,
+                "REGIONAL": row.regional,
+                "PENANGGUNG JAWAB": row.penanggungJawab,
+                "STATUS Report DSO": row.statusMaster,
+                "STATUS Surveillance": row.statusRef,
+                "Judul": row.judul,
+                "Status Gap": row.gapType,
+                "Rekomendasi": row.rekomendasi
+            }));
+        }
+        if (!exportData.length) return;
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, currentTab === 'gap1' ? "CRA_Gap_Report" : "CRA_Only_Surveillance");
+        XLSX.writeFile(wb, `${currentTab === 'gap1' ? 'cra_gap_report' : 'cra_only_surveillance'}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx`);
+    }
+    
+    function refresh() {
+        document.getElementById('fileMaster').value = '';
+        document.getElementById('fileRef').value = '';
+        document.getElementById('resultBody').innerHTML = `<tr><td colspan="9" style="text-align:center; padding:60px;">⬆️ Upload kedua file Excel lalu klik Bandingkan ⬆️</td></tr>`;
+        document.getElementById('statsGrid').style.display = 'none';
+        document.getElementById('summaryCard').style.display = 'none';
+        document.getElementById('exportBtn').style.display = 'none';
+        document.getElementById('tabContainer').style.display = 'none';
+        currentResults = [];
+        onlySurvResults = [];
+        currentTab = 'gap1';
+    }
+    
+    function setupTabs() {
+        const tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabs.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTab = btn.getAttribute('data-tab');
+                if (currentTab === 'gap1') {
+                    renderResults(currentResults);
+                } else {
+                    renderOnlySurvResults(onlySurvResults);
+                }
+            });
+        });
+    }
+    
+    document.getElementById('btnCompare').addEventListener('click', async () => {
+        const fileMaster = document.getElementById('fileMaster').files[0];
+        const fileRef = document.getElementById('fileRef').files[0];
+        if (!fileMaster || !fileRef) return alert("Pilih kedua file terlebih dahulu.");
+        
+        const tbody = document.getElementById('resultBody');
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">⏳ Memproses... mohon tunggu</td></tr>`;
+        document.getElementById('statsGrid').style.display = 'none';
+        document.getElementById('summaryCard').style.display = 'none';
+        
+        try {
+            currentRefMap = await buildRefData(fileRef);
+            currentResults = await processMaster(fileMaster, currentRefMap);
+            onlySurvResults = findOnlySurveillance();
+            
+            document.getElementById('tabContainer').style.display = 'flex';
+            renderStats();
+            
+            currentTab = 'gap1';
+            document.querySelector('.tab-btn[data-tab="gap1"]').classList.add('active');
+            document.querySelector('.tab-btn[data-tab="gap2"]').classList.remove('active');
+            renderResults(currentResults);
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:red;">❌ Error: ${err.message}</td></tr>`;
+            alert("Error: " + err.message);
+        }
+    });
+    
+    document.getElementById('btnRefresh').addEventListener('click', refresh);
+    document.getElementById('exportBtn').addEventListener('click', exportToXLS);
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;'));
+    }
+    
+    setupTabs();
+</script>
+</body>
+</html>
